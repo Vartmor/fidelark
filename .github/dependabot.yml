@@ -14,11 +14,3 @@ updates:
         dependency-type: development
       runtime:
         dependency-type: production
-
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
-    groups:
-      actions:
-        patterns: ["*"]

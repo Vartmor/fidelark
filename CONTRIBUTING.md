@@ -19,7 +19,8 @@ See the [README](README.md) for the repository layout and
 
 - Keep changes focused; one topic per pull request.
 - Commit messages are short and descriptive, one line.
-- `pnpm check` must pass.
+- `pnpm check` must pass locally. There is no hosted CI: run it before every push. Browser
+  tests run when Chrome, Chromium or Edge is installed (or `FIDELARK_BROWSER` is set).
 - Changes to `packages/schema` require `pnpm schema:emit` and, for breaking changes, a
   `SCHEMA_VERSION` bump.
 

@@ -3,7 +3,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { FixtureManifest } from "@fidelark/schema";
 import { findBrowser, type VerifyOptions, verifyFile } from "@fidelark/verifier";
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
+import { BROWSER_TEST_TIMEOUT } from "../packages/verifier/src/testing.ts";
 
 const FIXTURES = fileURLToPath(new URL("../fixtures/", import.meta.url));
 const VERDICT = { works: "passed", partial: "partial", fails: "failed" } as const;
@@ -15,16 +16,8 @@ const manifests = (await readdir(FIXTURES, { withFileTypes: true, recursive: tru
 
 /** Opens every fixture offline in a real browser and compares the verdict with `expected.offline`. */
 describe.skipIf((await findBrowser()) === null)("offline corpus", () => {
-  // Fixtures are trusted test files. CI runners without a browser sandbox run without it.
-  let options: VerifyOptions = { settleMs: 500 };
-  beforeAll(async () => {
-    const [first] = manifests;
-    const m = FixtureManifest.parse(JSON.parse(await readFile(first as string, "utf8")));
-    const probe = await verifyFile(join(dirname(first as string), m.artifact.path), options);
-    if (probe.findings.some((f) => f.code === "verify.launch-failed") && process.env.CI) {
-      options = { ...options, noSandbox: true };
-    }
-  });
+  // Fixtures are trusted test files; they are opened in the sandboxed browser.
+  const options: VerifyOptions = { settleMs: 500, timeoutMs: 30_000 };
 
   it.each(manifests.map((m) => [m.slice(FIXTURES.length), m]))(
     "%s",
@@ -35,6 +28,6 @@ describe.skipIf((await findBrowser()) === null)("offline corpus", () => {
       const result = await verifyFile(join(dirname(path), manifest.artifact.path), options);
       expect(result.verdict, JSON.stringify(result.browser)).toBe(VERDICT[expected]);
     },
-    30_000,
+    BROWSER_TEST_TIMEOUT,
   );
 });

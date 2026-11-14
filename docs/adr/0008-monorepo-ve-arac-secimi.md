@@ -26,7 +26,8 @@ kapasite sınırlı (§7), bu yüzden araç zinciri olabildiğince az parça iç
   semver'e göre sürümlenir.
 - **Lint ve format:** Biome (tek araç, tek yapılandırma).
 - **Test:** Vitest.
-- **CI:** GitHub Actions; `lint`, `typecheck`, `test`.
+- **Kontroller yerelde:** `pnpm check` (lint, tip kontrolü, testler) commit ve push öncesinde
+  yerelde çalıştırılır. Proje kuralı olarak GitHub Actions veya başka barındırılan CI kullanılmaz.
 
 ## Alternatifler
 

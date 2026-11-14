@@ -57,9 +57,8 @@ risk burada.
     ya da statik analiz Connected, Static fallback veya Unsupported dedi. Smoke test tıklama ve
     yazma yapmadığı için bu davranışlar ayrıca `verify.static-limits` ile belirtilir.
   - **passed:** Hiçbiri yok.
-- Fixture'larda `expected.offline`, orijinal dosyanın `verify` sonucudur. Tarayıcı varsa her test
-  çalıştırmasında bütün corpus çevrimdışı açılır ve sonuçlar karşılaştırılır (CI'da Chrome hazır
-  gelir).
+- Fixture'larda `expected.offline`, orijinal dosyanın `verify` sonucudur. Tarayıcı varsa her yerel
+  test çalıştırmasında (`pnpm check`) bütün corpus çevrimdışı açılır ve sonuçlar karşılaştırılır.
 
 ## Alternatifler
 

@@ -5,6 +5,7 @@ import { InputError } from "@fidelark/core";
 import { type BrowserCheck, VerificationResult } from "@fidelark/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { findBrowser } from "./browser.ts";
+import { BROWSER_TEST_TIMEOUT } from "./testing.ts";
 import { decide, type VerifyOptions, verifyFile } from "./verify.ts";
 
 const browserPath = await findBrowser();
@@ -107,38 +108,38 @@ describe("verifyFile (static)", () => {
   });
 });
 
-describe.skipIf(browserPath === null)("verifyFile (offline browser)", () => {
-  // These tests open only files they wrote. CI runners without a browser sandbox run without it.
-  let options: VerifyOptions = { settleMs: 300, timeoutMs: 15_000 };
-  beforeAll(async () => {
-    const probe = await verifyFile(file("ok.html"), options);
-    if (probe.findings.some((f) => f.code === "verify.launch-failed") && process.env.CI) {
-      options = { ...options, noSandbox: true };
-    }
-  });
+describe.skipIf(browserPath === null)(
+  "verifyFile (offline browser)",
+  { timeout: BROWSER_TEST_TIMEOUT },
+  () => {
+    // These tests open only files they wrote, in the sandboxed browser.
+    const options: VerifyOptions = { settleMs: 300, timeoutMs: 30_000 };
 
-  it("passes a self-contained page that works offline", async () => {
-    const result = await verifyFile(file("ok.html"), options);
-    expect(result.verdict).toBe("passed");
-    expect(result.browser).toMatchObject({ loaded: true, blockedRequests: [], pageErrors: [] });
-    expect(result.browser?.renderedTextChars).toBeGreaterThan(0);
-  });
+    it("passes a self-contained page that works offline", async () => {
+      const result = await verifyFile(file("ok.html"), options);
+      expect(result.verdict).toBe("passed");
+      expect(result.browser).toMatchObject({ loaded: true, blockedRequests: [], pageErrors: [] });
+      expect(result.browser?.renderedTextChars).toBeGreaterThan(0);
+    });
 
-  it("blocks and reports network requests", async () => {
-    const result = await verifyFile(file("connected.html"), options);
-    expect(result.verdict).toBe("partial");
-    expect(result.browser?.blockedRequests).toEqual(["https://api.test/data"]);
-  });
+    it("blocks and reports network requests", async () => {
+      const result = await verifyFile(file("connected.html"), options);
+      expect(result.verdict).toBe("partial");
+      expect(result.browser?.blockedRequests).toEqual(["https://api.test/data"]);
+    });
 
-  it("fails a page that stays blank while raising errors", async () => {
-    const result = await verifyFile(file("blank.html"), options);
-    expect(result.verdict).toBe("failed");
-    expect(result.browser?.pageErrors[0]).toMatch(/missingLibrary/);
-  });
+    it("fails a page that stays blank while raising errors", async () => {
+      const result = await verifyFile(file("blank.html"), options);
+      expect(result.verdict).toBe("failed");
+      expect(result.browser?.pageErrors[0]).toMatch(/missingLibrary/);
+    });
 
-  it("rates a readable page with errors as partial", async () => {
-    const result = await verifyFile(file("degraded.html"), options);
-    expect(result.verdict).toBe("partial");
-    expect(result.findings.find((f) => f.code === "verify.page-errors")?.severity).toBe("warning");
-  });
-});
+    it("rates a readable page with errors as partial", async () => {
+      const result = await verifyFile(file("degraded.html"), options);
+      expect(result.verdict).toBe("partial");
+      expect(result.findings.find((f) => f.code === "verify.page-errors")?.severity).toBe(
+        "warning",
+      );
+    });
+  },
+);
