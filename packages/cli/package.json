@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@fidelark/core": "workspace:*",
-    "@fidelark/schema": "workspace:*"
+    "@fidelark/schema": "workspace:*",
+    "@fidelark/verifier": "workspace:*"
   }
 }

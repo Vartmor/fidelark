@@ -21,7 +21,7 @@
       "storage"
     ],
     "fidelity": "bundled-portable",
-    "offline": "partial",
+    "offline": "fails",
     "findings": [
       "dependency.remote",
       "script.unparsed",

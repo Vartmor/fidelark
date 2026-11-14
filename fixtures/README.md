@@ -28,13 +28,16 @@ fixtures/synthetic/minimal-quiz/
 | `category` | `react-jsx`, `html`, `html-zip`, `data-viz`, `markdown`, `connected`, `adversarial` |
 | `source` | `synthetic`, `public` (with `url`) or `consented` (with `consentRecord`), always with a license |
 | `artifact.sha256` | Hash of the artifact file; the test suite fails if the file changes |
-| `expected` | Format, exact capability set, overall fidelity class, offline result, and finding codes that must appear |
+| `expected` | Format, exact capability set, overall fidelity class, finding codes that must appear, and `offline`: the verdict of `fidelark verify` on the original file (`works` = passed, `partial`, `fails` = failed) |
 | `baselines` | Results of the same artifact with existing free tools such as SingleFile or monolith |
 
 `pnpm test` validates every manifest, checks the artifact hash, and runs `fidelark inspect` on the
 artifact. For analyzed formats the report must match `expected` exactly: the same capabilities,
 the same overall fidelity, and every listed finding code. A fixture is therefore a regression
 test: add one whenever the analyzer learns something new or gets something wrong.
+
+When a Chromium-based browser is available, every fixture is also opened offline with
+`fidelark verify` and its verdict must match `expected.offline`.
 
 ## Recording baseline comparisons
 

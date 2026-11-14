@@ -20,7 +20,7 @@
       "host-api"
     ],
     "fidelity": "unsupported",
-    "offline": "fails",
+    "offline": "partial",
     "findings": [
       "host.api",
       "script.inline"

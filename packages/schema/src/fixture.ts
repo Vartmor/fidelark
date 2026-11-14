@@ -14,6 +14,10 @@ export const FixtureCategory = z.enum([
 ]);
 export type FixtureCategory = z.infer<typeof FixtureCategory>;
 
+/**
+ * Result of opening an artifact offline. In `expected.offline` it is the verdict of
+ * `fidelark verify` on the original file: works = passed, partial = partial, fails = failed.
+ */
 export const OfflineResult = z.enum(["works", "partial", "fails", "not-tested"]);
 export type OfflineResult = z.infer<typeof OfflineResult>;
 

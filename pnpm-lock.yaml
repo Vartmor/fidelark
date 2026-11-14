@@ -17,9 +17,15 @@ importers:
       '@fidelark/core':
         specifier: workspace:*
         version: link:packages/core
+      '@fidelark/exporter':
+        specifier: workspace:*
+        version: link:packages/exporter
       '@fidelark/schema':
         specifier: workspace:*
         version: link:packages/schema
+      '@fidelark/verifier':
+        specifier: workspace:*
+        version: link:packages/verifier
       '@types/node':
         specifier: ^24.19.2
         version: 24.19.2
@@ -53,8 +59,23 @@ importers:
       '@fidelark/schema':
         specifier: workspace:*
         version: link:../schema
+      '@fidelark/verifier':
+        specifier: workspace:*
+        version: link:../verifier
 
   packages/core:
+    dependencies:
+      '@fidelark/analyzer':
+        specifier: workspace:*
+        version: link:../analyzer
+      '@fidelark/exporter':
+        specifier: workspace:*
+        version: link:../exporter
+      '@fidelark/schema':
+        specifier: workspace:*
+        version: link:../schema
+
+  packages/exporter:
     dependencies:
       '@fidelark/analyzer':
         specifier: workspace:*
@@ -62,12 +83,30 @@ importers:
       '@fidelark/schema':
         specifier: workspace:*
         version: link:../schema
+      parse5:
+        specifier: 8.1.1
+        version: 8.1.1
 
   packages/schema:
     dependencies:
       zod:
         specifier: 4.6.7
         version: 4.6.7
+
+  packages/verifier:
+    dependencies:
+      '@fidelark/analyzer':
+        specifier: workspace:*
+        version: link:../analyzer
+      '@fidelark/core':
+        specifier: workspace:*
+        version: link:../core
+      '@fidelark/schema':
+        specifier: workspace:*
+        version: link:../schema
+      playwright-core:
+        specifier: 1.65.1
+        version: 1.65.1
 
 packages:
 
@@ -567,6 +606,11 @@ packages:
     resolution: {integrity: sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA==}
     engines: {node: '>=12'}
 
+  playwright-core@1.65.1:
+    resolution: {integrity: sha512-hqPpz7blSMPxWVdoeE1yiBSzXsKiVOd2k+kjCvmUywD2GPO2Dd9HfcWnq9NN0GHbNZDFgZ9JfBFr+X5/BLo0qw==}
+    engines: {node: '>=20'}
+    hasBin: true
+
   postcss@8.5.32:
     resolution: {integrity: sha512-LJlKCCAUFKOuZxipUdYw1NzIITEsPcgyOG9LkvRJvuKj/bRzbuRY0ARXvL0pWGpsZvn8jku+LMep2eU0seHp8g==}
     engines: {node: ^10 || ^12 || >=14}
@@ -1013,6 +1057,8 @@ snapshots:
   picocolors@1.1.1: {}
 
   picomatch@4.0.7: {}
+
+  playwright-core@1.65.1: {}
 
   postcss@8.5.32:
     dependencies:

@@ -20,7 +20,9 @@
     "@biomejs/biome": "2.6.7",
     "@fidelark/analyzer": "workspace:*",
     "@fidelark/core": "workspace:*",
+    "@fidelark/exporter": "workspace:*",
     "@fidelark/schema": "workspace:*",
+    "@fidelark/verifier": "workspace:*",
     "@types/node": "^24.19.2",
     "typescript": "7.0.2",
     "vitest": "5.1.0"

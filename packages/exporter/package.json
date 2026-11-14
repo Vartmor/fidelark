@@ -1,0 +1,16 @@
+{
+  "name": "@fidelark/exporter",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "Standalone HTML export: bundles dependencies into one file with safe, permissioned loaders.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@fidelark/analyzer": "workspace:*",
+    "@fidelark/schema": "workspace:*",
+    "parse5": "8.1.1"
+  }
+}

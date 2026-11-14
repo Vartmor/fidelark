@@ -1,4 +1,11 @@
-import { type AxisAssessment, fidelityLabel, type PortabilityReport } from "@fidelark/schema";
+import {
+  type AxisAssessment,
+  type ConversionResult,
+  type Finding,
+  fidelityLabel,
+  type PortabilityReport,
+  type VerificationResult,
+} from "@fidelark/schema";
 
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -61,13 +68,100 @@ export function formatReport(report: PortabilityReport): string {
     lines.push(row("Fidelity", "not assessed"));
   }
 
-  if (findings.length > 0) {
-    lines.push("", "Findings");
-    const codeWidth = Math.max(...findings.map((f) => f.code.length));
-    for (const f of findings) {
-      lines.push(`  ${f.severity.padEnd(8)} ${f.code.padEnd(codeWidth)}  ${f.message}`);
-      for (const e of f.evidence ?? []) lines.push(`  ${" ".repeat(9 + codeWidth)}  - ${e}`);
-    }
+  lines.push(...findingLines(findings));
+  return `${lines.join("\n")}\n`;
+}
+
+function findingLines(findings: readonly Finding[]): string[] {
+  if (findings.length === 0) return [];
+  const lines = ["", "Findings"];
+  const codeWidth = Math.max(...findings.map((f) => f.code.length));
+  for (const f of findings) {
+    lines.push(`  ${f.severity.padEnd(8)} ${f.code.padEnd(codeWidth)}  ${f.message}`);
+    for (const e of f.evidence ?? []) lines.push(`  ${" ".repeat(9 + codeWidth)}  - ${e}`);
   }
+  return lines;
+}
+
+const fidelityOf = (report: PortabilityReport) =>
+  report.analysis ? fidelityLabel(report.analysis.fidelity.overall) : "not assessed";
+
+/** Summary of `convert`: what was embedded, what stayed external, and fidelity before → after. */
+export function formatConversion(result: ConversionResult, outputPath: string): string {
+  const { manifest, before, after } = result;
+  const remote = manifest.bundled.filter((b) => b.from === "remote").length;
+  const bytes = manifest.bundled.reduce((sum, b) => sum + b.bytes, 0);
+  const lines = [
+    row("Input", `${before.input.name}  (${formatBytes(before.input.sizeBytes)})`),
+    row("Output", `${outputPath}  (${formatBytes(after.input.sizeBytes)})`),
+    row(
+      "Embedded",
+      manifest.bundled.length === 0
+        ? "nothing"
+        : `${manifest.bundled.length} resource${manifest.bundled.length === 1 ? "" : "s"}, ${formatBytes(bytes)} (${manifest.bundled.length - remote} local, ${remote} remote)`,
+    ),
+    row(
+      "External",
+      manifest.skipped.length === 0 ? "none" : `${manifest.skipped.length} (see findings)`,
+    ),
+    row(
+      "Fidelity",
+      `${fidelityOf(before)}  →  ${fidelityOf(after)}  (static analysis, not yet verified offline)`,
+    ),
+  ];
+  if (after.analysis) {
+    const { axes } = after.analysis.fidelity;
+    lines.push(
+      ...axisLines("content", axes.content),
+      ...axisLines("visual", axes.visual),
+      ...axisLines("behavioral", axes.behavioral),
+    );
+  }
+  lines.push(...findingLines(result.findings), "", `Next: fidelark verify ${outputPath}`);
+  return `${lines.join("\n")}\n`;
+}
+
+const VERDICTS: Record<VerificationResult["verdict"], string> = {
+  passed: "passed — works offline with no blocked requests and no errors",
+  partial: "partial — opens offline, but some parts are blocked, raise errors or need a connection",
+  failed: "failed — the page did not load, or stayed blank while raising errors or being blocked",
+  "not-run": "not run — only the static check was done",
+};
+
+/** Summary of `verify`: static self-containment plus what happened in the offline browser. */
+export function formatVerification(result: VerificationResult): string {
+  const { browser } = result;
+  const lines = [
+    row("File", result.input.name),
+    row(
+      "Embedded",
+      result.selfContained
+        ? "all scripts, styles, fonts, images and media"
+        : `${result.unbundled.length} file${result.unbundled.length === 1 ? "" : "s"} still external`,
+    ),
+  ];
+  if (browser) {
+    lines.push(
+      row(
+        "Browser",
+        `${browser.browser} (${browser.sandboxed ? "sandboxed" : "NOT sandboxed"}, network blocked)`,
+      ),
+      row(
+        "Loaded",
+        browser.loaded ? `yes, ${browser.renderedTextChars} characters of visible text` : "no",
+      ),
+      row(
+        "Blocked",
+        `${browser.blockedRequests.length} request${browser.blockedRequests.length === 1 ? "" : "s"}`,
+      ),
+      row(
+        "Errors",
+        `${browser.pageErrors.length} uncaught, ${browser.consoleErrors.length} console`,
+      ),
+    );
+  } else {
+    lines.push(row("Browser", "not run"));
+  }
+  lines.push(row("Verdict", VERDICTS[result.verdict]), ...findingLines(result.findings));
   return `${lines.join("\n")}\n`;
 }

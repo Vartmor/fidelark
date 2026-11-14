@@ -109,9 +109,12 @@ export const Analysis = z.strictObject({
 });
 export type Analysis = z.infer<typeof Analysis>;
 
+export const Tool = z.strictObject({ name: z.literal("fidelark"), version: z.string().min(1) });
+export type Tool = z.infer<typeof Tool>;
+
 export const PortabilityReport = z.strictObject({
   schemaVersion: z.literal(SCHEMA_VERSION),
-  tool: z.strictObject({ name: z.literal("fidelark"), version: z.string().min(1) }),
+  tool: Tool,
   generatedAt: z.iso.datetime(),
   input: InputInfo,
   /** Null until the input has been analyzed; fidelity is never guessed. */

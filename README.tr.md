@@ -15,14 +15,15 @@
 
 Fidelark, yapay zekâ ile üretilen işlerin üretildikleri platformun dışında da kullanılabilir
 kalmasını sağlar. Etkileşimli AI çıktılarını (HTML, React/JSX, Markdown, ZIP export) inceler,
-neyin çevrimdışı çalışıp neyin çalışmadığını gösterir ve ileride bunları taşınabilir dosyalar
-olarak dışa aktaracak: **İçe aktar. İncele. Koru. Dışa aktar.**
+neyin çevrimdışı çalışıp neyin çalışmadığını gösterir ve bunları taşınabilir dosyalar
+olarak dışa aktarır: **İçe aktar. İncele. Koru. Dışa aktar.**
 
 ## İçindekiler
 
 - [Bugün neler çalışıyor](#bugün-neler-çalışıyor)
 - [Temel ilkeler](#temel-ilkeler)
 - [Kullanım](#kullanım)
+- [Dönüştürme ve doğrulama](#dönüştürme-ve-doğrulama)
 - [Örnek rapor](#örnek-rapor)
 - [Fidelity sınıfları](#fidelity-sınıfları)
 - [Yol haritası](#yol-haritası)
@@ -45,16 +46,23 @@ taşınabilirlik raporu üretir:
   yalnızca AI platformunun içinde var olan API'ler ve olası gizli anahtarlar (her zaman
   maskelenmiş olarak).
 
-Diğer formatlar (React/JSX kaynağı, Markdown, ZIP) tanınır ama henüz analiz edilmez. Henüz dışa
-aktarma yok ve fidelity, export'u çevrimdışı yeniden açarak doğrulanmıyor; raporlar bunu açıkça
-söyler.
+`fidelark convert`, bir HTML dosyasını script, stil, font, görsel ve medya dosyalarıyla birlikte
+içinde köken manifest'i bulunan **tek ve kendi kendine yeten bir HTML dosyasına** dönüştürür.
+`fidelark verify`, bir dosyayı **ağ erişimi tamamen kapalı, sandbox içindeki bir tarayıcıda**
+açar; neyi yüklemeye çalıştığını ve hangi hataları verdiğini raporlar.
+
+Diğer formatlar (React/JSX kaynağı, Markdown, ZIP) tanınır ama henüz analiz edilmez ve
+dönüştürülmez. ES modül grafları, gömülü sayfalar ve canlı ağ çağrıları dışarıda kalır;
+dönüşüm raporu bunu açıkça söyler.
 
 ## Temel ilkeler
 
 - **Yerel öncelikli:** Her şey kendi bilgisayarınızda çalışır; CLI hiçbir içerik veya telemetri
   göndermez.
-- **Varsayılan olarak güvenli:** İnceleme sırasında girdi asla çalıştırılmaz, render edilmez ve
-  girdideki hiçbir adres çağrılmaz.
+- **Varsayılan olarak güvenli:** `inspect` ve `convert` girdiyi asla çalıştırmaz. `convert` yerel
+  dosyaları yalnızca girdinin klasöründen okur; yalnızca `--allow-network` verilirse ve yalnızca
+  herkese açık adreslerden indirir. `verify` dosyayı yalnızca ağı kapalı, sandbox içindeki bir
+  tarayıcıda çalıştırır.
 - **Dürüst taşınabilirlik:** Fidelity yüzde olarak değil, eksen eksen ve kanıtıyla raporlanır.
 - **Deterministik:** Aynı girdi her zaman aynı raporu verir; hiçbir AI modeli kullanılmaz.
 
@@ -68,10 +76,33 @@ pnpm fidelark inspect path/to/artifact.html
 pnpm fidelark inspect path/to/artifact.html --json
 ```
 
-Çıkış kodları: `0` rapor üretildi, `1` raporda hata var, `2` kullanım veya girdi hatası.
-JSON çıktısı
-[`portability-report.schema.json`](packages/schema/json-schema/portability-report.schema.json)
-şemasına uyar.
+Çıkış kodları: `0` başarılı, `1` sorun bulundu (raporda hata, gömülemeyen dosya veya `verify`
+sonucunun passed olmaması), `2` kullanım veya girdi hatası. JSON çıktısı
+[`packages/schema/json-schema/`](packages/schema/json-schema/) altındaki şemalara uyar.
+
+## Dönüştürme ve doğrulama
+
+```bash
+# Yerel bağımlılıkları tek dosyaya göm (artifact.fidelark.html yazılır)
+pnpm fidelark convert path/to/artifact.html
+
+# Uzak script, stil, font ve görselleri de indir (yalnızca herkese açık adresler)
+pnpm fidelark convert path/to/artifact.html --allow-network -o portable.html
+
+# Sonucu sandbox içindeki Chromium'da çevrimdışı aç ve neyin bozulduğunu raporla
+pnpm fidelark verify portable.html
+```
+
+`convert`, Subresource Integrity hash'lerini doğrular, `defer`/`async` davranışını korur,
+çevrimdışında yalnızca hata verecek kaynak ipuçlarını (preload, preconnect) kaldırır ve girdinin
+klasörü (veya `--base`) dışındaki dosyaları reddeder. Her çıktı, gömülen her kaynağı SHA-256
+değeriyle ve dışarıda kalan her referansı nedeniyle listeleyen bir
+`<script type="application/json" id="fidelark-export">` manifest'i taşır.
+
+`verify` için Chrome, Chromium veya Edge gerekir (farklı bir yol için `FIDELARK_BROWSER`).
+Sonuç **passed** (engellenen istek ve hata yok), **partial** (açılıyor ama bir şey engelleniyor,
+hata veriyor veya bağlantı gerektiriyor) ya da **failed** (yüklenmiyor veya boş kalıp hata
+veriyor) olur. Yalnızca sayfayı açar; tıklama veya yazma yapmaz.
 
 ## Örnek rapor
 
@@ -129,8 +160,9 @@ Bulguları sınıflara bağlayan kurallar
 
 - [x] Girdi sınıflandırma, boyut limitleri ve şema sürümlü raporlar
 - [x] Tek HTML dosyaları için statik analiz ve fidelity değerlendirmesi
+- [x] Otomatik çevrimdışı doğrulamalı bağımsız HTML export
 - [ ] React/JSX artifact kaynağından çevrimdışı çalışan HTML üretme
-- [ ] Otomatik çevrimdışı doğrulamalı bağımsız HTML export
+- [ ] ES modül graflarını paketleme
 - [ ] ZIP export incelemesi
 - [ ] Sandbox içinde yerel önizleme
 
@@ -141,6 +173,8 @@ packages/
   schema/     sözleşmeler (Zod) ve yayınlanan JSON Schema: fidelity sınıfları, raporlar, fixture'lar
   core/       girdi sınıflandırma, limitler, inceleme akışı
   analyzer/   statik HTML, CSS ve JavaScript analizi; fidelity kuralları
+  exporter/   izin kontrollü yerel ve ağ yükleyicileriyle bağımsız HTML export
+  verifier/   sandbox içindeki tarayıcıda çevrimdışı doğrulama
   cli/        `fidelark` komutu
 fixtures/     beklenen sonuçlarıyla test corpus'u (bkz. fixtures/README.md)
 tests/        paketler arası testler (fixture corpus'u, marka dosyası bütünlüğü)
@@ -158,8 +192,9 @@ pnpm schema:emit   # packages/schema değiştikten sonra JSON Schema'yı yeniden
 
 TypeScript, Node'un yerleşik type stripping özelliğiyle doğrudan çalışır, derleme adımı yoktur;
 bkz. [ADR-008](docs/adr/0008-monorepo-ve-arac-secimi.md). Her test çalıştırmasında fixture'ların
-beklenen yetenekleri, fidelity sınıfları ve bulguları kontrol edilir; analizdeki değişiklikler
-regresyon olarak görünür.
+beklenen yetenekleri, fidelity sınıfları ve bulguları, tarayıcı varsa çevrimdışı sonuçları da
+kontrol edilir; değişiklikler regresyon olarak görünür. Export ve doğrulama kararları
+[ADR-011](docs/adr/0011-standalone-html-export-ve-cevrimdisi-dogrulama.md) içindedir.
 
 ## Marka
 

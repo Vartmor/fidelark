@@ -15,13 +15,14 @@
 
 Fidelark keeps AI-generated work usable beyond the platform where it was made. It inspects
 interactive AI artifacts (HTML, React/JSX, Markdown, ZIP exports), shows what survives offline
-and what doesn't, and will export them as portable files: **Import. Inspect. Preserve. Export.**
+and what doesn't, and exports them as portable files: **Import. Inspect. Preserve. Export.**
 
 ## Contents
 
 - [What works today](#what-works-today)
 - [Principles](#principles)
 - [Usage](#usage)
+- [Convert and verify](#convert-and-verify)
 - [Example report](#example-report)
 - [Fidelity classes](#fidelity-classes)
 - [Roadmap](#roadmap)
@@ -42,13 +43,20 @@ schema-versioned portability report:
 - **Findings:** remote and missing files, network calls, remote forms and frames, dynamic code,
   APIs that exist only inside an AI platform, and possible credentials (always redacted).
 
-Other formats (React/JSX source, Markdown, ZIP) are recognized but not analyzed yet. Nothing is
-exported yet, and fidelity is not yet verified by reopening an export offline; reports say so.
+`fidelark convert` bundles an HTML file and its scripts, stylesheets, fonts, images and media into
+**one self-contained HTML file**, with a provenance manifest inside it. `fidelark verify` opens a
+file in a **sandboxed browser with all network access blocked** and reports what it tried to
+load and which errors it raised.
+
+Other formats (React/JSX source, Markdown, ZIP) are recognized but not analyzed or converted yet.
+ES module graphs, embedded pages and live network calls stay external, and conversions say so.
 
 ## Principles
 
 - **Local-first:** everything runs on your machine; the CLI sends no content and no telemetry.
-- **Safe by default:** inputs are never executed, rendered or fetched during inspection.
+- **Safe by default:** `inspect` and `convert` never execute the input. `convert` reads local
+  files only from the input's folder and downloads only with `--allow-network`, only from public
+  addresses. `verify` runs the file only inside a sandboxed browser with the network blocked.
 - **Honest portability:** fidelity is reported per axis with evidence, never as a percentage.
 - **Deterministic:** the same input always gives the same report; no AI model is involved.
 
@@ -62,9 +70,32 @@ pnpm fidelark inspect path/to/artifact.html
 pnpm fidelark inspect path/to/artifact.html --json
 ```
 
-Exit codes: `0` report produced, `1` report contains errors, `2` usage or input error.
-The JSON output follows
-[`portability-report.schema.json`](packages/schema/json-schema/portability-report.schema.json).
+Exit codes: `0` success, `1` problems found (errors in the report, failed embeds, or a verify
+verdict other than passed), `2` usage or input error. JSON output follows the schemas in
+[`packages/schema/json-schema/`](packages/schema/json-schema/).
+
+## Convert and verify
+
+```bash
+# Bundle local dependencies into one file (writes artifact.fidelark.html)
+pnpm fidelark convert path/to/artifact.html
+
+# Also download remote scripts, stylesheets, fonts and images (public addresses only)
+pnpm fidelark convert path/to/artifact.html --allow-network -o portable.html
+
+# Open the result offline in a sandboxed Chromium and report what breaks
+pnpm fidelark verify portable.html
+```
+
+`convert` checks Subresource Integrity hashes, keeps `defer`/`async` semantics, removes resource
+hints that would only fail offline, and refuses files outside the input's folder (or `--base`).
+Every output carries a `<script type="application/json" id="fidelark-export">` manifest listing
+each embedded resource with its SHA-256, and each reference left external with the reason.
+
+`verify` needs Chrome, Chromium or Edge (set `FIDELARK_BROWSER` to a custom path). Its verdict is
+**passed** (no blocked requests, no errors), **partial** (opens, but something is blocked, raises
+errors or needs a connection) or **failed** (does not load, or stays blank while failing). It
+only loads the page; it does not click or type.
 
 ## Example report
 
@@ -121,8 +152,9 @@ The rules that map findings to classes are documented in
 
 - [x] Input classification, size limits and schema-versioned reports
 - [x] Static analysis and fidelity assessment for single HTML files
+- [x] Standalone HTML export with automated offline verification
 - [ ] React/JSX artifact source → runnable offline HTML
-- [ ] Standalone HTML export with automated offline verification
+- [ ] Bundling ES module graphs
 - [ ] ZIP export inspection
 - [ ] Sandboxed local preview
 
@@ -133,6 +165,8 @@ packages/
   schema/     contracts (Zod) and published JSON Schema: fidelity classes, reports, fixtures
   core/       input classification, limits, inspection pipeline
   analyzer/   static HTML, CSS and JavaScript analysis; fidelity rules
+  exporter/   standalone HTML export with permissioned local and network loaders
+  verifier/   offline verification in a sandboxed browser
   cli/        the `fidelark` command
 fixtures/     test corpus with expected results (see fixtures/README.md)
 tests/        cross-package tests (fixture corpus, brand asset integrity)
@@ -150,7 +184,9 @@ pnpm schema:emit   # regenerate JSON Schema after changing packages/schema
 
 TypeScript runs directly on Node's built-in type stripping, so there is no build step;
 see [ADR-008](docs/adr/0008-monorepo-ve-arac-secimi.md). Every fixture's expected capabilities,
-fidelity and findings are checked on each test run, so analyzer changes show up as regressions.
+fidelity and findings are checked on each test run, and, when a browser is available, its
+offline verdict too, so changes show up as regressions. Export and verification decisions are in
+[ADR-011](docs/adr/0011-standalone-html-export-ve-cevrimdisi-dogrulama.md).
 
 ## Brand
 

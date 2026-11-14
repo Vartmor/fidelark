@@ -125,6 +125,35 @@ export async function inspectFile(
   }
 }
 
+/**
+ * Reads a whole input file for commands that need its bytes (convert, verify).
+ * Unlike `inspectFile`, an oversized input is an error rather than a report.
+ */
+export async function readInputFile(
+  path: string,
+  limits: Limits = DEFAULT_LIMITS,
+): Promise<Buffer> {
+  let handle: Awaited<ReturnType<typeof open>>;
+  try {
+    handle = await open(path, "r");
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    throw new InputError(
+      code === "ENOENT" ? `File not found: ${path}` : `Cannot open ${path} (${code})`,
+    );
+  }
+  try {
+    const stat = await handle.stat();
+    if (!stat.isFile()) throw new InputError(`Not a regular file: ${path}`);
+    if (stat.size > limits.maxInputBytes) {
+      throw new InputError(`Input exceeds the ${limits.maxInputBytes}-byte limit: ${path}`);
+    }
+    return await handle.readFile();
+  } finally {
+    await handle.close();
+  }
+}
+
 function tooLarge(limits: Limits): Finding {
   return {
     code: "input.too-large",
