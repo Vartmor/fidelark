@@ -16,7 +16,8 @@ Usage:
   fidelark inspect <file> [--json]
 
 Commands:
-  inspect   Classify a file and print its portability report. Never executes the input.
+  inspect   Analyze a file and print its portability report (HTML today).
+            Never executes, renders or fetches anything from the input.
 
 Options:
   --json         Print the report as JSON (stable, schema-versioned output)

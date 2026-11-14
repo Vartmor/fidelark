@@ -41,5 +41,18 @@ describe("fixture corpus", () => {
 
     const report = inspectBytes(manifest.artifact.path, bytes);
     expect(report.input.format).toBe(manifest.expected.format);
+
+    // Analyzed formats must match the fixture's expectations exactly (regression corpus).
+    if (report.analysis) {
+      const { expected } = manifest;
+      expect([...report.analysis.capabilities].sort(), "capabilities").toEqual(
+        [...expected.capabilities].sort(),
+      );
+      expect(report.analysis.fidelity.overall, "overall fidelity").toBe(expected.fidelity);
+      const codes = report.findings.map((f) => f.code);
+      for (const code of expected.findings) {
+        expect(codes, `finding ${code}`).toContain(code);
+      }
+    }
   });
 });

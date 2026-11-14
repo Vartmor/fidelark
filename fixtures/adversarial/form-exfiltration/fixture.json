@@ -1,0 +1,36 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.2.0",
+  "id": "form-exfiltration",
+  "title": "Page that posts form data and cookies to a remote host, redirects itself and embeds a remote frame",
+  "category": "adversarial",
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
+  "artifact": {
+    "path": "artifact.html",
+    "sha256": "19630bb072611ed8256fdd2189930068fe3f0ef9a2b297030a54146f0049f7a2"
+  },
+  "expected": {
+    "format": "html",
+    "capabilities": [
+      "html",
+      "inline-script",
+      "form",
+      "iframe",
+      "storage"
+    ],
+    "fidelity": "connected",
+    "offline": "partial",
+    "findings": [
+      "html.remote-form",
+      "html.meta-refresh",
+      "html.remote-frame",
+      "script.inline",
+      "storage.persistent"
+    ]
+  },
+  "baselines": [],
+  "notes": "Never executed: inspection must surface the data flows without running the page."
+}

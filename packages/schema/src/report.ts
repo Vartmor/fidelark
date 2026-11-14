@@ -2,7 +2,7 @@ import { z } from "zod";
 import { FidelityAssessment } from "./fidelity.ts";
 
 /** Version of the report and fixture contracts. Bump on any breaking change (semver). */
-export const SCHEMA_VERSION = "0.1.0";
+export const SCHEMA_VERSION = "0.2.0";
 
 export const Sha256 = z.string().regex(/^[a-f0-9]{64}$/, "lowercase hex SHA-256");
 
@@ -32,6 +32,30 @@ export const InputInfo = z.strictObject({
 });
 export type InputInfo = z.infer<typeof InputInfo>;
 
+/** What the artifact uses. A fixed vocabulary, so reports and fixtures can be compared. */
+export const CAPABILITIES = [
+  "html",
+  "css",
+  "inline-script",
+  "external-script",
+  "module-script",
+  "web-font",
+  "image",
+  "media",
+  "canvas",
+  "svg",
+  "form",
+  "iframe",
+  "network-fetch",
+  "websocket",
+  "storage",
+  "dynamic-code",
+  "worker",
+  "host-api",
+] as const;
+export const Capability = z.enum(CAPABILITIES);
+export type Capability = z.infer<typeof Capability>;
+
 export const DependencyKind = z.enum([
   "script",
   "module",
@@ -39,15 +63,29 @@ export const DependencyKind = z.enum([
   "font",
   "image",
   "media",
-  "fetch",
+  "frame",
+  "network",
   "other",
 ]);
+export type DependencyKind = z.infer<typeof DependencyKind>;
+
+/**
+ * Where a dependency lives: `remote` (http, https or protocol-relative URL), `relative`
+ * (a path next to the artifact), `embedded` (data: URI) or `bare` (a module name such as
+ * "react" that only resolves through an import map or bundler).
+ */
+export const DependencyLocation = z.enum(["remote", "relative", "embedded", "bare"]);
+export type DependencyLocation = z.infer<typeof DependencyLocation>;
 
 export const Dependency = z.strictObject({
   kind: DependencyKind,
+  /** The reference as written in the artifact, with credentials redacted. */
   specifier: z.string().min(1),
+  location: DependencyLocation,
   bundled: z.boolean(),
   sha256: Sha256.optional(),
+  /** Where the reference was found, e.g. `<script src> line 6`. */
+  evidence: z.array(z.string()),
 });
 export type Dependency = z.infer<typeof Dependency>;
 
@@ -63,7 +101,7 @@ export const ExportTarget = z.enum(["standalone-html", "zip", "markdown"]);
 export type ExportTarget = z.infer<typeof ExportTarget>;
 
 export const Analysis = z.strictObject({
-  capabilities: z.array(z.string()),
+  capabilities: z.array(Capability),
   dependencies: z.array(Dependency),
   permissions: Permissions,
   fidelity: FidelityAssessment,

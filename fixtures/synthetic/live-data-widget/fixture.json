@@ -1,20 +1,33 @@
 {
   "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
-  "schemaVersion": "0.1.0",
+  "schemaVersion": "0.2.0",
   "id": "live-data-widget",
   "title": "Chart widget that loads a CDN library and fetches live data",
   "category": "connected",
-  "source": { "origin": "synthetic", "license": "CC0-1.0" },
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
   "artifact": {
     "path": "artifact.html",
     "sha256": "a1a638cedcb17332b4d6eb3ad452651b661b0ffd92f23544ebc650543f8b8ded"
   },
   "expected": {
     "format": "html",
-    "capabilities": ["html", "inline-script", "external-script", "network-fetch", "canvas"],
+    "capabilities": [
+      "html",
+      "inline-script",
+      "external-script",
+      "canvas",
+      "network-fetch"
+    ],
     "fidelity": "connected",
     "offline": "partial",
-    "security": ["inline-script", "external-script", "network-fetch"]
+    "findings": [
+      "dependency.remote",
+      "network.runtime",
+      "script.inline"
+    ]
   },
   "baselines": [],
   "notes": "The CDN script can be bundled; the live API call cannot. Expected report: bundled script plus a connected data source."

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Ask the tutor</title></head>
+<body>
+  <h1>Ask the tutor</h1>
+  <textarea id="q" aria-label="Question"></textarea>
+  <button id="ask">Ask</button>
+  <p id="answer" role="status"></p>
+  <script>
+    document.getElementById("ask").addEventListener("click", async () => {
+      const prompt = document.getElementById("q").value;
+      const reply = await window.claude.complete(prompt);
+      document.getElementById("answer").textContent = reply;
+    });
+  </script>
+</body>
+</html>

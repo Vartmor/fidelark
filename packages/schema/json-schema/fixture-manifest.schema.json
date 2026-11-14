@@ -7,7 +7,7 @@
     },
     "schemaVersion": {
       "type": "string",
-      "const": "0.1.0"
+      "const": "0.2.0"
     },
     "id": {
       "type": "string",
@@ -136,7 +136,27 @@
         "capabilities": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "html",
+              "css",
+              "inline-script",
+              "external-script",
+              "module-script",
+              "web-font",
+              "image",
+              "media",
+              "canvas",
+              "svg",
+              "form",
+              "iframe",
+              "network-fetch",
+              "websocket",
+              "storage",
+              "dynamic-code",
+              "worker",
+              "host-api"
+            ]
           }
         },
         "fidelity": {
@@ -159,7 +179,7 @@
             "not-tested"
           ]
         },
-        "security": {
+        "findings": {
           "type": "array",
           "items": {
             "type": "string"
@@ -171,7 +191,7 @@
         "capabilities",
         "fidelity",
         "offline",
-        "security"
+        "findings"
       ],
       "additionalProperties": false
     },

@@ -18,7 +18,7 @@ afterAll(async () => {
 });
 
 describe("inspectBytes", () => {
-  it("produces a valid report with hash, format and no guessed fidelity", () => {
+  it("analyzes HTML into a valid report with hash, format and fidelity", () => {
     const report = inspectBytes("/some/private/path/quiz.html", html, { now: fixedNow });
     expect(PortabilityReport.safeParse(report).success).toBe(true);
     expect(report.input).toEqual({
@@ -28,6 +28,13 @@ describe("inspectBytes", () => {
       sha256: createHash("sha256").update(html).digest("hex"),
     });
     expect(report.generatedAt).toBe("2026-11-14T12:00:00.000Z");
+    expect(report.analysis?.fidelity.overall).toBe("exact-portable");
+    expect(report.findings.map((f) => f.code)).toEqual(["fidelity.unverified"]);
+  });
+
+  it("does not guess fidelity for formats without an analyzer", () => {
+    const markdown = new TextEncoder().encode("# Notes\n\nSome text.");
+    const report = inspectBytes("notes.md", markdown);
     expect(report.analysis).toBeNull();
     expect(report.findings.map((f) => f.code)).toEqual(["analysis.not-implemented"]);
   });

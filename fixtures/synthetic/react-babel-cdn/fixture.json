@@ -1,0 +1,33 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.2.0",
+  "id": "react-babel-cdn",
+  "title": "React flashcards compiled in the browser with Babel, saving progress to localStorage",
+  "category": "html",
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
+  "artifact": {
+    "path": "artifact.html",
+    "sha256": "1a289040495207fa732891fba63bf6af529b74ad0de8b4775d203bb851f94827"
+  },
+  "expected": {
+    "format": "html",
+    "capabilities": [
+      "html",
+      "inline-script",
+      "external-script",
+      "storage"
+    ],
+    "fidelity": "bundled-portable",
+    "offline": "partial",
+    "findings": [
+      "dependency.remote",
+      "script.unparsed",
+      "storage.persistent"
+    ]
+  },
+  "baselines": [],
+  "notes": "Common shape of AI-generated React artifacts saved as HTML. JSX is not plain JavaScript, so fallback rules apply."
+}

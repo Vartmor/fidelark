@@ -26,6 +26,7 @@ beforeAll(async () => {
   dir = await mkdtemp(join(tmpdir(), "fidelark-cli-"));
   await writeFile(join(dir, "quiz.html"), "<!doctype html><html><body>Quiz</body></html>");
   await writeFile(join(dir, "data.csv"), "a,b\n1,2\n");
+  await writeFile(join(dir, "notes.md"), "# Notes\n");
 });
 afterAll(async () => {
   await rm(dir, { recursive: true, force: true });
@@ -42,11 +43,20 @@ describe("fidelark CLI", () => {
     expect((await run("--version")).stdout).toBe(`${VERSION}\n`);
   });
 
-  it("prints a human-readable report", async () => {
+  it("prints a human-readable report with an assessed fidelity", async () => {
     const r = await run("inspect", join(dir, "quiz.html"));
     expect(r.code).toBe(EXIT.ok);
     expect(r.stdout).toContain("quiz.html");
-    expect(r.stdout).toContain("not assessed");
+    expect(r.stdout).toContain(
+      "Fidelity  ● Exact portable  (static analysis, not yet verified offline)",
+    );
+    expect(r.stdout).toContain("fidelity.unverified");
+  });
+
+  it("says fidelity is not assessed for formats without an analyzer", async () => {
+    const r = await run("inspect", join(dir, "notes.md"));
+    expect(r.code).toBe(EXIT.ok);
+    expect(r.stdout).toContain("Fidelity  not assessed");
   });
 
   it("prints a schema-valid JSON report", async () => {

@@ -1,0 +1,31 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.2.0",
+  "id": "platform-host-api",
+  "title": "Tutor widget that calls the AI platform's in-page API (window.claude)",
+  "category": "html",
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
+  "artifact": {
+    "path": "artifact.html",
+    "sha256": "b9da8fc395c887d14b92babd5daaceccf6f599b5c8254f8104986d4ac21deda4"
+  },
+  "expected": {
+    "format": "html",
+    "capabilities": [
+      "html",
+      "inline-script",
+      "host-api"
+    ],
+    "fidelity": "unsupported",
+    "offline": "fails",
+    "findings": [
+      "host.api",
+      "script.inline"
+    ]
+  },
+  "baselines": [],
+  "notes": "The API exists only inside the platform that created the artifact, so this behavior cannot be carried over."
+}

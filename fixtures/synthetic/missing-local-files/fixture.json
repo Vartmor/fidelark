@@ -1,0 +1,31 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.2.0",
+  "id": "missing-local-files",
+  "title": "Single HTML file that references local CSS, JS and image files it does not contain",
+  "category": "html",
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
+  "artifact": {
+    "path": "artifact.html",
+    "sha256": "00da859b4c67b2d192969da6d743fc01135953403f3da909e4654796f861fc10"
+  },
+  "expected": {
+    "format": "html",
+    "capabilities": [
+      "html",
+      "css",
+      "external-script",
+      "image"
+    ],
+    "fidelity": "static-fallback",
+    "offline": "partial",
+    "findings": [
+      "dependency.missing"
+    ]
+  },
+  "baselines": [],
+  "notes": "Typical of a multi-file export saved as one file: the ZIP export is needed to preserve behavior."
+}

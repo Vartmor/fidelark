@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Flashcards</title>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const cards = [
+      { q: "2 + 2", a: "4" },
+      { q: "Capital of France", a: "Paris" },
+    ];
+    function App() {
+      const [i, setI] = React.useState(() => Number(localStorage.getItem("card") ?? 0));
+      const [shown, setShown] = React.useState(false);
+      const next = () => {
+        const n = (i + 1) % cards.length;
+        setI(n);
+        setShown(false);
+        localStorage.setItem("card", String(n));
+      };
+      return (
+        <main>
+          <p>{cards[i].q}</p>
+          {shown && <p>{cards[i].a}</p>}
+          <button onClick={() => setShown(true)}>Show</button>
+          <button onClick={next}>Next</button>
+        </main>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>

@@ -1,7 +1,9 @@
 import { createHash } from "node:crypto";
 import { open } from "node:fs/promises";
 import { basename } from "node:path";
+import { analyzeHtml } from "@fidelark/analyzer";
 import {
+  type Analysis,
   type Finding,
   type InputFormat,
   PortabilityReport,
@@ -27,11 +29,15 @@ export class InputError extends Error {
   }
 }
 
-const NOT_ANALYZED: Finding = {
+const notAnalyzed = (format: InputFormat): Finding => ({
   code: "analysis.not-implemented",
   severity: "info",
-  message: "Static analysis is not implemented yet, so fidelity has not been assessed.",
-};
+  message: `Static analysis for ${format} input is not implemented yet, so fidelity has not been assessed.`,
+});
+
+function decodeText(bytes: Uint8Array): string {
+  return new TextDecoder("utf-8").decode(bytes);
+}
 
 function buildReport(
   name: string,
@@ -40,6 +46,7 @@ function buildReport(
   format: InputFormat,
   findings: Finding[],
   options: InspectOptions,
+  analysis: Analysis | null = null,
 ): PortabilityReport {
   const now = options.now ?? (() => new Date());
   // Parsing guarantees every report we emit matches the published contract.
@@ -48,12 +55,12 @@ function buildReport(
     tool: { name: "fidelark", version: VERSION },
     generatedAt: now().toISOString(),
     input: { name, format, sizeBytes, sha256 },
-    analysis: null,
+    analysis,
     findings,
   });
 }
 
-/** Inspects in-memory bytes. Never executes or renders the input. */
+/** Inspects in-memory bytes. Never executes, renders or fetches anything from the input. */
 export function inspectBytes(
   name: string,
   bytes: Uint8Array,
@@ -66,8 +73,21 @@ export function inspectBytes(
   }
   const sha256 = createHash("sha256").update(bytes).digest("hex");
   const { format, findings } = classifyInput(displayName, bytes);
+  if (format === "html") {
+    const result = analyzeHtml(decodeText(bytes));
+    findings.push(...result.findings);
+    return buildReport(
+      displayName,
+      bytes.byteLength,
+      sha256,
+      format,
+      findings,
+      options,
+      result.analysis,
+    );
+  }
   if (format !== "unknown") {
-    findings.push(NOT_ANALYZED);
+    findings.push(notAnalyzed(format));
   }
   return buildReport(displayName, bytes.byteLength, sha256, format, findings, options);
 }

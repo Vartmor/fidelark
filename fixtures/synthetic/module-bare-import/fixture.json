@@ -1,0 +1,30 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.2.0",
+  "id": "module-bare-import",
+  "title": "Module script importing packages by bare name without an import map",
+  "category": "html",
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
+  "artifact": {
+    "path": "artifact.html",
+    "sha256": "764d472ee6655a2d888e2da1e5440ced38d16553f0c9841ff2171ccee83081fa"
+  },
+  "expected": {
+    "format": "html",
+    "capabilities": [
+      "html",
+      "inline-script",
+      "module-script"
+    ],
+    "fidelity": "static-fallback",
+    "offline": "fails",
+    "findings": [
+      "dependency.bare-import"
+    ]
+  },
+  "baselines": [],
+  "notes": "Code written for a bundler; browsers cannot resolve bare module names without an import map."
+}

@@ -1,0 +1,34 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.2.0",
+  "id": "remote-assets",
+  "title": "Highlighted code page with a web font, remote stylesheets, a remote image and a CDN script",
+  "category": "html",
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
+  "artifact": {
+    "path": "artifact.html",
+    "sha256": "e4167bdfe842805f116a355dd1566897df6b7622ccba316852f996f4a3bf8af8"
+  },
+  "expected": {
+    "format": "html",
+    "capabilities": [
+      "html",
+      "css",
+      "inline-script",
+      "external-script",
+      "web-font",
+      "image"
+    ],
+    "fidelity": "bundled-portable",
+    "offline": "partial",
+    "findings": [
+      "dependency.remote",
+      "script.inline"
+    ]
+  },
+  "baselines": [],
+  "notes": "Everything it needs is static and can be bundled; nothing is fetched at runtime."
+}

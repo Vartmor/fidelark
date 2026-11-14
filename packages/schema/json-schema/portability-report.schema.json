@@ -4,7 +4,7 @@
   "properties": {
     "schemaVersion": {
       "type": "string",
-      "const": "0.1.0"
+      "const": "0.2.0"
     },
     "tool": {
       "type": "object",
@@ -80,7 +80,27 @@
             "capabilities": {
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "html",
+                  "css",
+                  "inline-script",
+                  "external-script",
+                  "module-script",
+                  "web-font",
+                  "image",
+                  "media",
+                  "canvas",
+                  "svg",
+                  "form",
+                  "iframe",
+                  "network-fetch",
+                  "websocket",
+                  "storage",
+                  "dynamic-code",
+                  "worker",
+                  "host-api"
+                ]
               }
             },
             "dependencies": {
@@ -97,7 +117,8 @@
                       "font",
                       "image",
                       "media",
-                      "fetch",
+                      "frame",
+                      "network",
                       "other"
                     ]
                   },
@@ -105,18 +126,35 @@
                     "type": "string",
                     "minLength": 1
                   },
+                  "location": {
+                    "type": "string",
+                    "enum": [
+                      "remote",
+                      "relative",
+                      "embedded",
+                      "bare"
+                    ]
+                  },
                   "bundled": {
                     "type": "boolean"
                   },
                   "sha256": {
                     "type": "string",
                     "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "evidence": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": [
                   "kind",
                   "specifier",
-                  "bundled"
+                  "location",
+                  "bundled",
+                  "evidence"
                 ],
                 "additionalProperties": false
               }

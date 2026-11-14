@@ -1,0 +1,31 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.2.0",
+  "id": "static-article",
+  "title": "Static article with inline styles, inline SVG and an embedded image",
+  "category": "html",
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
+  "artifact": {
+    "path": "artifact.html",
+    "sha256": "8f549194edf3c602e6ec3a9b9c5eb2dcc47465e8aa14680a6e54d145bbc1ef76"
+  },
+  "expected": {
+    "format": "html",
+    "capabilities": [
+      "html",
+      "css",
+      "image",
+      "svg"
+    ],
+    "fidelity": "exact-portable",
+    "offline": "works",
+    "findings": [
+      "fidelity.unverified"
+    ]
+  },
+  "baselines": [],
+  "notes": "No scripts and no external files: the simplest exact-portable document."
+}

