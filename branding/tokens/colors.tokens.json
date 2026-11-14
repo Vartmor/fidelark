@@ -1,0 +1,223 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "color": {
+    "ink": {
+      "$type": "color",
+      "$value": "#152D2B"
+    },
+    "inkDeep": {
+      "$type": "color",
+      "$value": "#0B201E"
+    },
+    "paper": {
+      "$type": "color",
+      "$value": "#F6F3EC"
+    },
+    "white": {
+      "$type": "color",
+      "$value": "#FFFFFF"
+    },
+    "stone": {
+      "$type": "color",
+      "$value": "#E9E9E1"
+    },
+    "line": {
+      "$type": "color",
+      "$value": "#CCD6D0"
+    },
+    "muted": {
+      "$type": "color",
+      "$value": "#526A65"
+    },
+    "mutedDark": {
+      "$type": "color",
+      "$value": "#A9C0B8"
+    },
+    "signal": {
+      "$type": "color",
+      "$value": "#F18A63"
+    },
+    "signalDeep": {
+      "$type": "color",
+      "$value": "#AF4524"
+    },
+    "signalPale": {
+      "$type": "color",
+      "$value": "#FCE3D7"
+    },
+    "mint": {
+      "$type": "color",
+      "$value": "#B8E4CC"
+    },
+    "mintDeep": {
+      "$type": "color",
+      "$value": "#1E6C4E"
+    },
+    "blue": {
+      "$type": "color",
+      "$value": "#3263A0"
+    },
+    "bluePale": {
+      "$type": "color",
+      "$value": "#E3ECF5"
+    },
+    "gold": {
+      "$type": "color",
+      "$value": "#955C16"
+    },
+    "goldPale": {
+      "$type": "color",
+      "$value": "#F8EDD3"
+    },
+    "danger": {
+      "$type": "color",
+      "$value": "#A13A3C"
+    },
+    "dangerPale": {
+      "$type": "color",
+      "$value": "#FBE7E6"
+    },
+    "surfaceDark": {
+      "$type": "color",
+      "$value": "#1C3835"
+    },
+    "borderStrong": {
+      "$type": "color",
+      "$value": "#627A70"
+    }
+  },
+  "semantic": {
+    "light": {
+      "background": {
+        "$type": "color",
+        "$value": "{color.paper}"
+      },
+      "surface": {
+        "$type": "color",
+        "$value": "{color.white}"
+      },
+      "surfaceMuted": {
+        "$type": "color",
+        "$value": "{color.stone}"
+      },
+      "foreground": {
+        "$type": "color",
+        "$value": "{color.ink}"
+      },
+      "foregroundMuted": {
+        "$type": "color",
+        "$value": "{color.muted}"
+      },
+      "border": {
+        "$type": "color",
+        "$value": "{color.line}"
+      },
+      "action": {
+        "$type": "color",
+        "$value": "{color.ink}"
+      },
+      "actionText": {
+        "$type": "color",
+        "$value": "{color.white}"
+      },
+      "link": {
+        "$type": "color",
+        "$value": "{color.blue}"
+      },
+      "focus": {
+        "$type": "color",
+        "$value": "{color.signalDeep}"
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "{color.signalDeep}"
+      },
+      "accentBackground": {
+        "$type": "color",
+        "$value": "{color.signalPale}"
+      },
+      "success": {
+        "$type": "color",
+        "$value": "{color.mintDeep}"
+      },
+      "successBackground": {
+        "$type": "color",
+        "$value": "{color.mint}"
+      },
+      "danger": {
+        "$type": "color",
+        "$value": "{color.danger}"
+      },
+      "dangerBackground": {
+        "$type": "color",
+        "$value": "{color.dangerPale}"
+      }
+    },
+    "dark": {
+      "background": {
+        "$type": "color",
+        "$value": "{color.inkDeep}"
+      },
+      "surface": {
+        "$type": "color",
+        "$value": "{color.ink}"
+      },
+      "surfaceMuted": {
+        "$type": "color",
+        "$value": "{color.surfaceDark}"
+      },
+      "foreground": {
+        "$type": "color",
+        "$value": "{color.paper}"
+      },
+      "foregroundMuted": {
+        "$type": "color",
+        "$value": "{color.mutedDark}"
+      },
+      "border": {
+        "$type": "color",
+        "$value": "{color.muted}"
+      },
+      "action": {
+        "$type": "color",
+        "$value": "{color.signal}"
+      },
+      "actionText": {
+        "$type": "color",
+        "$value": "{color.inkDeep}"
+      },
+      "link": {
+        "$type": "color",
+        "$value": "{color.mint}"
+      },
+      "focus": {
+        "$type": "color",
+        "$value": "{color.signal}"
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "{color.signal}"
+      },
+      "accentBackground": {
+        "$type": "color",
+        "$value": "{color.surfaceDark}"
+      },
+      "success": {
+        "$type": "color",
+        "$value": "{color.mint}"
+      },
+      "successBackground": {
+        "$type": "color",
+        "$value": "{color.surfaceDark}"
+      },
+      "danger": {
+        "$type": "color",
+        "$value": "{color.signal}"
+      },
+      "dangerBackground": {
+        "$type": "color",
+        "$value": "{color.surfaceDark}"
+      }
+    }
+  }
+}

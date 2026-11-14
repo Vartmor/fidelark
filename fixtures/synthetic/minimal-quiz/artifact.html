@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Minimal quiz</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 32rem; margin: 2rem auto; }
+    .correct { color: #0f766e; } .wrong { color: #b91c1c; }
+  </style>
+</head>
+<body>
+  <h1>What is 2 + 2?</h1>
+  <form id="quiz">
+    <label><input type="radio" name="a" value="3"> 3</label>
+    <label><input type="radio" name="a" value="4"> 4</label>
+    <label><input type="radio" name="a" value="5"> 5</label>
+    <button type="submit">Check</button>
+  </form>
+  <p id="result" role="status"></p>
+  <script>
+    document.getElementById("quiz").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const answer = new FormData(event.target).get("a");
+      const result = document.getElementById("result");
+      result.textContent = answer === "4" ? "Correct!" : "Try again.";
+      result.className = answer === "4" ? "correct" : "wrong";
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+pair,foreground,background,ratio,target,pass
+ink-on-paper,#152D2B,#F6F3EC,13.14,4.5,True
+muted-on-paper,#526A65,#F6F3EC,5.252,4.5,True
+signal-deep-on-paper,#AF4524,#F6F3EC,5.122,4.5,True
+paper-on-ink-deep,#F6F3EC,#0B201E,15.287,4.5,True
+signal-on-ink-deep,#F18A63,#0B201E,6.902,4.5,True
+muted-dark-on-ink-deep,#A9C0B8,#0B201E,8.809,4.5,True
+strong-border-on-paper,#627A70,#F6F3EC,4.177,3.0,True
+strong-border-on-white,#627A70,#FFFFFF,4.628,3.0,True
+strong-border-dark-on-ink,#A9C0B8,#152D2B,7.571,3.0,True
+exact-label-on-mint,#164A35,#B8E4CC,7.267,4.5,True
+bundled-label-on-pale-blue,#254C7A,#E3ECF5,7.346,4.5,True
+equivalent-label-on-stone,#152D2B,#E9E9E1,11.932,4.5,True
+static-label-on-pale-gold,#72430F,#F8EDD3,7.146,4.5,True
+unsupported-label-on-pale-danger,#8B3032,#FBE7E6,6.886,4.5,True

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="360" viewBox="0 0 500 360" role="img" aria-label="Symbol geometry and proportion">
+<title>Symbol geometry and proportion</title><g><rect width="500" height="360" fill="#F6F3EC"/>
+<g transform="translate(85 45) scale(2.0)"><g fill="#152D2B" fill-rule="evenodd"><path d="M24 86 V25 H86 L73 41 H41 V73 Z"/><path d="M96 34 V95 H34 L47 79 H79 V47 Z"/></g></g>
+<g stroke="#AF4524" stroke-dasharray="4 6" fill="none" stroke-width="1.4"><rect x="133" y="95" width="144" height="144"/><line x1="133" y1="265" x2="277" y2="265"/><line x1="133" y1="93" x2="133" y2="80"/><line x1="277" y1="93" x2="277" y2="80"/></g>
+<g font-family="Inter,Arial,sans-serif" fill="#152D2B" font-size="14"><text x="312" y="115">120 × 120 grid</text><text x="312" y="141">72 × 70 optical silhouette</text><text x="312" y="167">16 unit split termini</text><text x="312" y="193">24 unit clearspace (min.)</text></g>
+</g></svg>

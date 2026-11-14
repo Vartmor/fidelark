@@ -1,0 +1,21 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.1.0",
+  "id": "minimal-quiz",
+  "title": "Single-question quiz with inline script and styles",
+  "category": "html",
+  "source": { "origin": "synthetic", "license": "CC0-1.0" },
+  "artifact": {
+    "path": "artifact.html",
+    "sha256": "516bf6e1e224d4e46d64a8cc32a95a08840df4fba09e6ac990c77bd61c01c174"
+  },
+  "expected": {
+    "format": "html",
+    "capabilities": ["html", "css", "inline-script", "form"],
+    "fidelity": "exact-portable",
+    "offline": "works",
+    "security": ["inline-script"]
+  },
+  "baselines": [],
+  "notes": "Smallest exact-portable case: no external resources, no network."
+}

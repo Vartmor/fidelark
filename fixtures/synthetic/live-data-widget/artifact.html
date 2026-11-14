@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Live data widget</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <h1>Exchange rate (live)</h1>
+  <canvas id="chart" width="480" height="240"></canvas>
+  <p id="status" role="status">Loading…</p>
+  <script>
+    fetch("https://api.example.com/rates?base=EUR")
+      .then((response) => response.json())
+      .then((data) => {
+        new Chart(document.getElementById("chart"), {
+          type: "line",
+          data: { labels: data.dates, datasets: [{ label: "EUR/USD", data: data.values }] },
+        });
+        document.getElementById("status").textContent = "";
+      })
+      .catch(() => {
+        document.getElementById("status").textContent = "Could not load live data.";
+      });
+  </script>
+</body>
+</html>

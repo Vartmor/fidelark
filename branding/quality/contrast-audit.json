@@ -1,0 +1,119 @@
+{
+  "method": "WCAG 2.2 sRGB relative luminance contrast calculation",
+  "date": "2026-11-14",
+  "scope": "specified static color pairs only; does not certify entire interface",
+  "results": [
+    {
+      "pair": "ink-on-paper",
+      "foreground": "#152D2B",
+      "background": "#F6F3EC",
+      "ratio": 13.14,
+      "target": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "muted-on-paper",
+      "foreground": "#526A65",
+      "background": "#F6F3EC",
+      "ratio": 5.252,
+      "target": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "signal-deep-on-paper",
+      "foreground": "#AF4524",
+      "background": "#F6F3EC",
+      "ratio": 5.122,
+      "target": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "paper-on-ink-deep",
+      "foreground": "#F6F3EC",
+      "background": "#0B201E",
+      "ratio": 15.287,
+      "target": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "signal-on-ink-deep",
+      "foreground": "#F18A63",
+      "background": "#0B201E",
+      "ratio": 6.902,
+      "target": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "muted-dark-on-ink-deep",
+      "foreground": "#A9C0B8",
+      "background": "#0B201E",
+      "ratio": 8.809,
+      "target": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "strong-border-on-paper",
+      "foreground": "#627A70",
+      "background": "#F6F3EC",
+      "ratio": 4.177,
+      "target": 3.0,
+      "pass": true
+    },
+    {
+      "pair": "strong-border-on-white",
+      "foreground": "#627A70",
+      "background": "#FFFFFF",
+      "ratio": 4.628,
+      "target": 3.0,
+      "pass": true
+    },
+    {
+      "pair": "strong-border-dark-on-ink",
+      "foreground": "#A9C0B8",
+      "background": "#152D2B",
+      "ratio": 7.571,
+      "target": 3.0,
+      "pass": true
+    },
+    {
+      "pair": "exact-label-on-mint",
+      "foreground": "#164A35",
+      "background": "#B8E4CC",
+      "ratio": 7.267,
+      "target": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "bundled-label-on-pale-blue",
+      "foreground": "#254C7A",
+      "background": "#E3ECF5",
+      "ratio": 7.346,
+      "target": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "equivalent-label-on-stone",
+      "foreground": "#152D2B",
+      "background": "#E9E9E1",
+      "ratio": 11.932,
+      "target": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "static-label-on-pale-gold",
+      "foreground": "#72430F",
+      "background": "#F8EDD3",
+      "ratio": 7.146,
+      "target": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "unsupported-label-on-pale-danger",
+      "foreground": "#8B3032",
+      "background": "#FBE7E6",
+      "ratio": 6.886,
+      "target": 4.5,
+      "pass": true
+    }
+  ]
+}

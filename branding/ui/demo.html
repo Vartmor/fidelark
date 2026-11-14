@@ -1,0 +1,49 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Fidelark - Product UI concept</title><meta name="description" content="Fidelark brand UI prototype, no file is uploaded or processed."/>
+<link rel="icon" type="image/svg+xml" href="../assets/favicon/favicon.svg"/>
+<link rel="stylesheet" href="../tokens/brand.css"/><link rel="stylesheet" href="components.css"/>
+<style>
+body{margin:0}.demo-nav{height:84px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--f-border)}
+.demo-nav img{width:162px;display:block}.demo-tag{font:600 11px var(--f-font-mono);letter-spacing:.075em}
+.demo-hero{display:grid;grid-template-columns:1fr 1.02fr;gap:72px;align-items:center;padding-block:90px 112px}
+.demo-kicker{display:inline-flex;align-items:center;gap:10px;margin-bottom:24px}.demo-pip{width:10px;height:10px;background:var(--f-signal);display:inline-block}
+.demo-flow{position:relative;background:var(--f-ink-deep);color:var(--f-paper);border-radius:24px;padding:25px;box-shadow:0 26px 80px rgba(21,45,43,.16)}
+.demo-flow .f-eyebrow{color:#AEC9BD}.demo-window{margin-top:17px;background:var(--f-paper);color:var(--f-ink);border-radius:14px;padding:21px;min-height:360px}
+.demo-window-top{display:flex;justify-content:space-between;align-items:center;padding-bottom:17px;border-bottom:1px solid #D7DED8}
+.demo-main{display:grid;grid-template-columns:1.1fr .9fr;gap:20px;margin-top:18px}.demo-preview{border:1px solid #CFD9D0;border-radius:10px;padding:17px;min-height:212px}
+.demo-bullet{height:8px;background:#DBE0D9;border-radius:4px;margin-bottom:12px}.demo-stat{padding:10px 0;border-bottom:1px solid #DFE4DF;font-size:12px}
+.demo-stat strong{display:block;font-size:11px}.demo-stat small{color:#526A65}
+.demo-variant{max-width:200px}.demo-stripe{height:5px;width:100%;background:linear-gradient(90deg,#B8E4CC 0 62%,#E3ECF5 62% 78%,#F8EDD3 78% 90%,#FBE7E6 90%)}
+.demo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding-bottom:88px}
+.demo-footer{padding:28px 0 70px;border-top:1px solid var(--f-border);font-size:12px;color:var(--f-text-muted)}
+.theme-toggle{min-height:36px;font-size:12px}.theme-toggle:focus-visible{outline-offset:4px}
+@media(max-width:900px){.demo-hero{grid-template-columns:1fr;padding-block:62px;gap:48px}.demo-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:580px){.demo-grid{grid-template-columns:1fr}.demo-main{grid-template-columns:1fr}.demo-window{min-height:auto}.demo-nav img{width:140px}}
+</style></head>
+<body class="f-app"><div class="f-wrap"><header class="demo-nav">
+<a href="./demo.html" aria-label="Fidelark - homepage"><img id="navLogo" src="../assets/logo/svg/lockup-ink.svg" alt="Fidelark"/></a>
+<div class="f-row"><span class="demo-tag">DESIGN EXPLORATION / v1.0</span><button id="toggle" class="f-btn f-btn-secondary theme-toggle" type="button">Dark preview</button></div></header>
+<main><section class="demo-hero"><div><div class="demo-kicker f-eyebrow"><span class="demo-pip"></span>AN OPEN EXIT FOR AI WORK</div>
+<h1 class="f-display">Created here.<br/>Yours anywhere<span style="color:var(--f-signal-deep)">.</span></h1>
+<p class="f-lede" style="margin:26px 0 32px">Bring AI-generated artifacts into files you control. Inspect what survives, preserve what matters, and export with evidence.</p>
+<div class="f-row"><a class="f-btn f-btn-primary" href="#experience">Explore the system <span aria-hidden="true">↗</span></a><a class="f-btn f-btn-secondary" href="../brandbook/BRAND_GUIDELINES.md">Brand guidelines</a></div>
+<p class="f-eyebrow" style="margin-top:34px">Local-first · Clear capabilities · Honest fidelity</p></div>
+<div class="demo-flow"><div class="f-row" style="justify-content:space-between"><span class="f-eyebrow">FIDELARK / INSPECTION</span><span class="f-eyebrow">SAMPLE RECORD</span></div><div class="demo-window"><div class="demo-window-top"><span style="font:600 13px var(--f-font)">Project analysis.html</span><span class="f-chip" data-grade="semantic-equivalent">≈ Semantic equivalent</span></div>
+<div class="demo-main"><div class="demo-preview"><div class="f-eyebrow" style="color:#526A65">CONTENT PREVIEW</div><h3 style="letter-spacing:-.04em;font-size:25px;margin:15px 0 18px">Working knowledge,<br/>kept intact.</h3><div class="demo-bullet" style="width:75%"></div><div class="demo-bullet" style="width:90%"></div><div class="demo-bullet" style="width:58%"></div><div style="display:flex;align-items:flex-end;gap:8px;margin-top:24px;height:60px"><div style="height:45%;width:19px;background:#B8E4CC"></div><div style="height:90%;width:19px;background:#3263A0"></div><div style="height:62%;width:19px;background:#F18A63"></div><div style="height:77%;width:19px;background:#152D2B"></div></div></div>
+<div><div class="f-eyebrow" style="color:#526A65">CAPABILITY REPORT</div><div class="demo-stat"><strong>✓ Text & structure</strong><small>Preserved in export</small></div><div class="demo-stat"><strong>✓ Local chart</strong><small>No network needed</small></div><div class="demo-stat"><strong>↗ External widget</strong><small>Requires connection</small></div><div class="demo-stat"><strong>◧ Original asset</strong><small>Snapshot retained</small></div></div></div>
+<div class="demo-stripe" style="margin-top:21px"></div><div style="display:flex;justify-content:space-between;gap:8px;margin-top:17px;font:600 10px var(--f-font-mono)"><span>IMPORT</span><span>INSPECT</span><span>PRESERVE</span><span>EXPORT</span></div>
+</div></div></section>
+<section id="experience" style="padding-bottom:30px"><div class="f-eyebrow" style="margin-bottom:15px">01 / THE SYSTEM</div><h2 class="f-h2">Confidence in every handoff.</h2><p class="f-lede">Status is explicit, never a mysterious portability percentage. Each capability has a label, a reason, and a consequence.</p></section>
+<div class="demo-grid"><article class="f-card"><span class="f-chip" data-grade="exact-portable">● Exact portable</span><h3>Behavior preserved</h3><p>Interactive content opens independently as intended, within verified boundaries.</p></article>
+<article class="f-card"><span class="f-chip" data-grade="bundled-portable">▣ Bundled portable</span><h3>Dependencies included</h3><p>The runtime and assets travel with the artifact, without a required online service.</p></article>
+<article class="f-card"><span class="f-chip" data-grade="semantic-equivalent">≈ Semantic equivalent</span><h3>Meaning survives</h3><p>Presentation may adapt while essential meaning or behavior remains available.</p></article>
+<article class="f-card"><span class="f-chip" data-grade="connected">↗ Connected</span><h3>Connection disclosed</h3><p>Online capabilities are identified before the file leaves its original environment.</p></article>
+<article class="f-card"><span class="f-chip" data-grade="static-fallback">◧ Static fallback</span><h3>Preserved as evidence</h3><p>Where live behavior cannot travel, source and static representation remain.</p></article>
+<article class="f-card"><span class="f-chip" data-grade="unsupported">× Unsupported</span><h3>Limits made visible</h3><p>Unsafe or unavailable features are never marketed as successful conversions.</p></article></div>
+<section style="border-top:1px solid var(--f-border);padding:48px 0 64px;display:grid;grid-template-columns:1fr 1fr;gap:40px"><div><div class="f-eyebrow">02 / INTERACTION SAMPLE</div><h2 class="f-h2" style="margin-top:15px">A deliberate interface.</h2><p class="f-lede">The control below is a local design demo, not a real converter.</p></div><div class="f-card"><label for="sample" style="font-size:13px;font-weight:600">Example document name</label><input id="sample" class="f-input" placeholder="project-export.html" style="margin-top:7px"/><p id="sampleHint" style="font-size:13px;color:var(--f-text-muted)" aria-live="polite">Enter a filename to preview input feedback.</p><button id="sampleButton" class="f-btn f-btn-primary" type="button">Show sample state</button></div></section></main>
+<footer class="demo-footer"><div class="f-row" style="justify-content:space-between"><span>FIDELARK / DESIGN SYSTEM 1.0</span><span>Visual concept only. No conversion engine, upload, or external connection.</span></div></footer></div>
+<script>
+const root=document.body,t=document.getElementById('toggle'),img=document.getElementById('navLogo');
+t.addEventListener('click',()=>{const dark=root.getAttribute('data-theme')!=='dark';root.setAttribute('data-theme',dark?'dark':'light');t.textContent=dark?'Light preview':'Dark preview';img.src=dark?'../assets/logo/svg/lockup-paper.svg':'../assets/logo/svg/lockup-ink.svg'});
+document.getElementById('sampleButton').addEventListener('click',()=>{const v=document.getElementById('sample').value.trim();document.getElementById('sampleHint').textContent=v?`Sample only: “${v}” would be inspected in the real product. Nothing was uploaded or converted.`:'Enter a document name first. This is a static design demo.'});
+</script></body></html>

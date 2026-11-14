@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "react-jsx",
+        "html",
+        "html-zip",
+        "data-viz",
+        "markdown",
+        "connected",
+        "adversarial"
+      ]
+    },
+    "provider": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "origin": {
+              "type": "string",
+              "const": "synthetic"
+            },
+            "license": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "origin",
+            "license"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "origin": {
+              "type": "string",
+              "const": "public"
+            },
+            "license": {
+              "type": "string",
+              "minLength": 1
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "required": [
+            "origin",
+            "license",
+            "url"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "origin": {
+              "type": "string",
+              "const": "consented"
+            },
+            "license": {
+              "type": "string",
+              "minLength": 1
+            },
+            "consentRecord": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "origin",
+            "license",
+            "consentRecord"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "artifact": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "expected": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": [
+            "html",
+            "jsx",
+            "tsx",
+            "markdown",
+            "zip",
+            "unknown"
+          ]
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fidelity": {
+          "type": "string",
+          "enum": [
+            "exact-portable",
+            "bundled-portable",
+            "semantic-equivalent",
+            "connected",
+            "static-fallback",
+            "unsupported"
+          ]
+        },
+        "offline": {
+          "type": "string",
+          "enum": [
+            "works",
+            "partial",
+            "fails",
+            "not-tested"
+          ]
+        },
+        "security": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "format",
+        "capabilities",
+        "fidelity",
+        "offline",
+        "security"
+      ],
+      "additionalProperties": false
+    },
+    "baselines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tool": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "offline": {
+            "type": "string",
+            "enum": [
+              "works",
+              "partial",
+              "fails",
+              "not-tested"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool",
+          "offline"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "browserMatrix": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "id",
+    "title",
+    "category",
+    "source",
+    "artifact",
+    "expected",
+    "baselines"
+  ],
+  "additionalProperties": false
+}

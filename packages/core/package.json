@@ -1,0 +1,14 @@
+{
+  "name": "@fidelark/core",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "Fidelark conversion core: input classification, limits, inspection pipeline.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@fidelark/schema": "workspace:*"
+  }
+}

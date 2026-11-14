@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+.env
+.env.*
+
+# Private strategy repo (Vartmor/fidelark-internal), cloned here; never commit it.
+/internal/

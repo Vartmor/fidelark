@@ -1,0 +1,43 @@
+/* Fidelark Brand Identity v1.0 - import this before components.css.
+   No external services, remote fonts, trackers, or runtime dependencies. */
+:root {
+  --f-ink: #152D2B;
+  --f-ink-deep: #0B201E;
+  --f-paper: #F6F3EC;
+  --f-white: #FFFFFF;
+  --f-stone: #E9E9E1;
+  --f-line: #CCD6D0;
+  --f-muted: #526A65;
+  --f-muted-dark: #A9C0B8;
+  --f-signal: #F18A63;
+  --f-signal-deep: #AF4524;
+  --f-signal-pale: #FCE3D7;
+  --f-mint: #B8E4CC;
+  --f-mint-deep: #1E6C4E;
+  --f-blue: #3263A0;
+  --f-blue-pale: #E3ECF5;
+  --f-gold: #955C16;
+  --f-gold-pale: #F8EDD3;
+  --f-danger: #A13A3C;
+  --f-danger-pale: #FBE7E6;
+  --f-surface-dark: #1C3835;
+  --f-border-strong: #627A70;
+  --f-bg: var(--f-paper); --f-surface: var(--f-white); --f-ink-ui: var(--f-ink);
+  --f-text-muted: var(--f-muted); --f-border: var(--f-line);
+  --f-action: var(--f-ink); --f-action-text: var(--f-white);
+  --f-focus: var(--f-signal-deep);
+  --f-font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --f-font-display: "Inter Display", Inter, "Segoe UI", Arial, sans-serif;
+  --f-font-mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --f-radius-sm: 10px; --f-radius-md: 14px; --f-radius-lg: 24px;
+  --f-content-max: 1216px; --f-reading-max: 704px;
+  --f-shadow: 0 1px 2px rgba(11,32,30,.04),0 20px 65px rgba(11,32,30,.075);
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --f-bg: var(--f-ink-deep); --f-surface: var(--f-ink);
+  --f-ink-ui: var(--f-paper); --f-text-muted: var(--f-muted-dark);
+  --f-border: var(--f-muted); --f-border-strong: var(--f-muted-dark); --f-action: var(--f-signal);
+  --f-action-text: var(--f-ink-deep); --f-focus: var(--f-signal);
+}
+@media(prefers-reduced-motion:reduce) {*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important;}}
