@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { VERSION } from "@fidelark/core";
 import { ConversionResult, PortabilityReport, VerificationResult } from "@fidelark/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { buildZip } from "../../core/src/testing.ts";
 import { formatBytes } from "./format.ts";
 import { type Deps, EXIT, main } from "./main.ts";
 
@@ -33,6 +34,27 @@ beforeAll(async () => {
   await writeFile(join(dir, "data.csv"), "a,b\n1,2\n");
   await writeFile(join(dir, "notes.md"), "# Notes\n");
   await writeFile(join(dir, "app.js"), "document.title = 'ok';");
+  await writeFile(
+    join(dir, "site.zip"),
+    buildZip([
+      {
+        name: "lesson/index.html",
+        content:
+          '<!doctype html><html><head><link rel="stylesheet" href="style.css"><script src="app.js"></script></head><body><p>Lesson</p><img src="img/dot.svg" alt=""></body></html>',
+      },
+      { name: "lesson/style.css", content: "p { color: teal }" },
+      { name: "lesson/app.js", content: "document.title = 'zip';" },
+      { name: "lesson/img/dot.svg", content: '<svg xmlns="http://www.w3.org/2000/svg"/>' },
+      { name: "__MACOSX/lesson/._app.js", content: "x" },
+    ]),
+  );
+  await writeFile(
+    join(dir, "pages.zip"),
+    buildZip([
+      { name: "a.html", content: "<p>A</p>" },
+      { name: "b.html", content: "<p>B</p>" },
+    ]),
+  );
   await writeFile(
     join(dir, "page.html"),
     '<!doctype html><html><head><script src="app.js"></script><script src="https://cdn.test/x.js"></script></head><body><p>Page</p></body></html>',
@@ -146,14 +168,60 @@ describe("fidelark convert", () => {
     expect(result.after.analysis?.fidelity.overall).toBe("exact-portable");
   });
 
-  it("rejects options that belong to another command and non-HTML input", async () => {
+  it("rejects options that belong to another command and input it cannot convert", async () => {
     const wrong = await run("convert", join(dir, "page.html"), "--static-only");
     expect(wrong.code).toBe(EXIT.usage);
     expect(wrong.stderr).toContain("--static-only is not an option of convert");
     const md = await run("convert", join(dir, "notes.md"));
     expect(md.code).toBe(EXIT.usage);
-    expect(md.stderr).toContain("HTML input only");
+    expect(md.stderr).toContain("supports HTML and ZIP input");
     await expect(access(join(dir, "notes.fidelark.html"))).rejects.toThrow();
+  });
+});
+
+describe("ZIP exports", () => {
+  it("inspects the archive in memory and reports its entry document", async () => {
+    const r = await run("inspect", join(dir, "site.zip"));
+    expect(r.code).toBe(EXIT.ok);
+    expect(r.stdout).toContain("Format    zip");
+    expect(r.stdout).toContain("Archive   4 files, 248 B; 1 not read (see findings)");
+    expect(r.stdout).toContain("Entry     lesson/index.html");
+    expect(r.stdout).toContain("Fidelity  ● Exact portable");
+    const json = PortabilityReport.parse(
+      JSON.parse((await run("inspect", join(dir, "site.zip"), "--json")).stdout),
+    );
+    expect(json.archive?.files.map((f) => f.path)).toEqual([
+      "lesson/index.html",
+      "lesson/style.css",
+      "lesson/app.js",
+      "lesson/img/dot.svg",
+    ]);
+  });
+
+  it("converts the entry document and its files into one HTML file", async () => {
+    const r = await run("convert", join(dir, "site.zip"));
+    expect(r.code).toBe(EXIT.ok);
+    expect(r.stdout).toContain("Embedded  3 resources");
+    const out = await readFile(join(dir, "site.fidelark.html"), "utf8");
+    expect(out).toContain("<script>document.title = 'zip';</script>");
+    expect(out).toContain("p { color: teal }");
+    expect(out).toContain('src="data:image/svg+xml;base64,');
+  });
+
+  it("asks for --entry when several pages could be the entry", async () => {
+    const zip = join(dir, "pages.zip");
+    const ambiguous = await run("inspect", zip);
+    expect(ambiguous.code).toBe(EXIT.findings);
+    expect(ambiguous.stdout).toContain("zip.ambiguous-entry");
+    const chosen = await run("inspect", zip, "--entry", "b.html");
+    expect(chosen.code).toBe(EXIT.ok);
+    expect(chosen.stdout).toContain("Entry     b.html");
+    const convert = await run("convert", zip);
+    expect(convert.code).toBe(EXIT.usage);
+    expect(convert.stderr).toContain("pages.zip has no HTML document to convert");
+    const base = await run("convert", zip, "--entry", "a.html", "--base", dir);
+    expect(base.code).toBe(EXIT.usage);
+    expect(base.stderr).toContain("--base does not apply to ZIP input");
   });
 });
 

@@ -2,6 +2,7 @@ import { Analysis, Finding } from "@fidelark/schema";
 import { describe, expect, it } from "vitest";
 import { analyzeHtml } from "./analyze.ts";
 import { assessFidelity, type FidelitySignals } from "./fidelity.ts";
+import type { LocalFiles } from "./local.ts";
 
 const doc = (head: string, body: string) =>
   `<!doctype html>\n<html>\n<head>\n${head}\n</head>\n<body>\n${body}\n</body>\n</html>`;
@@ -226,5 +227,91 @@ describe("assessFidelity", () => {
       runtimeNetwork: ["x"],
     });
     expect(f.axes.content.class).toBe("connected");
+  });
+});
+
+/** The other files of a ZIP export, with the document at site/index.html. */
+function archive(files: Record<string, string>): LocalFiles {
+  const encoded = new Map(Object.entries(files).map(([p, c]) => [p, new TextEncoder().encode(c)]));
+  return { documentPath: "site/index.html", rootPath: "site", read: (p) => encoded.get(p) };
+}
+
+describe("analyzeHtml with archive files", () => {
+  it("treats a module script src as a URL, not a bare module name", () => {
+    const deps = analyzeHtml(doc('<script type="module" src="app.js"></script>', "")).analysis
+      .dependencies;
+    expect(deps.map((d) => `${d.kind} ${d.location} ${d.specifier}`)).toEqual([
+      "module relative app.js",
+    ]);
+  });
+
+  it("counts files in the archive as shipped and follows styles and scripts into them", () => {
+    const html = doc(
+      '<link rel="stylesheet" href="css/main.css">\n<script src="app.js"></script>',
+      '<img src="/img/logo.svg" alt="">\n<img src="missing.png" alt="">',
+    );
+    const local = archive({
+      "site/css/main.css":
+        "@font-face { src: url(../fonts/inter.woff2) }\nbody { background: url('../img/bg.png?v=2') }",
+      "site/fonts/inter.woff2": "font",
+      "site/img/bg.png": "png",
+      "site/img/logo.svg": "<svg/>",
+      "site/app.js": 'localStorage.setItem("x", 1);\nfetch("https://api.test/data");',
+    });
+    const { analysis, findings } = analyzeHtml(html, local);
+    expect(
+      analysis.dependencies.map((d) => `${d.kind} ${d.specifier} ${d.bundled} @${d.evidence[0]}`),
+    ).toEqual([
+      'stylesheet css/main.css true @<link rel="stylesheet"> line 4',
+      "script app.js true @<script src> line 5",
+      "image /img/logo.svg true @<img src> line 8",
+      "image missing.png false @<img src> line 9",
+      "font ../fonts/inter.woff2 true @site/css/main.css line 1",
+      "image ../img/bg.png?v=2 true @site/css/main.css line 2",
+      "network https://api.test/data false @fetch() in site/app.js line 2",
+    ]);
+    expect(analysis.capabilities).toEqual(
+      expect.arrayContaining(["css", "web-font", "image", "network-fetch", "storage"]),
+    );
+    const missing = findings.find((f) => f.code === "dependency.missing");
+    expect(missing?.message).toBe("1 local file referenced but not found in the archive.");
+    expect(analysis.fidelity.axes.visual.evidence[0]).toBe(
+      "1 local style or media file is not in the archive: missing.png.",
+    );
+    expect(analysis.fidelity.overall).toBe("connected");
+  });
+
+  it("follows module graphs and says browsers will not run them from disk", () => {
+    const local = archive({
+      "site/main.js": 'import { add } from "./lib/math.js";\nimport("./lazy.js");',
+      "site/lib/math.js": 'export const add = (a, b) => a + b;\nimport "../main.js";',
+      "site/lazy.js": "export default 1;",
+    });
+    const { analysis, findings } = analyzeHtml(
+      doc('<script type="module" src="main.js"></script>', "<p>Sum</p>"),
+      local,
+    );
+    // ../main.js from lib/math.js is site/main.js again: one file, two references.
+    expect(
+      analysis.dependencies.map((d) => `${d.specifier} ${d.bundled} ${d.evidence.length}`),
+    ).toEqual(["main.js true 2", "./lib/math.js true 1", "./lazy.js true 1"]);
+    const modules = findings.find((f) => f.code === "script.module-files");
+    expect(modules?.evidence).toEqual(["site/main.js", "site/lib/math.js", "site/lazy.js"]);
+    expect(analysis.fidelity.overall).toBe("bundled-portable");
+  });
+
+  it("scans archive code for credentials and never resolves outside the archive", () => {
+    const local = archive({ "site/app.js": 'const key = "AKIAABCDEFGHIJKLMNOP";' });
+    const { analysis, findings } = analyzeHtml(
+      doc('<script src="app.js"></script><script src="../../etc/passwd"></script>', ""),
+      local,
+    );
+    expect(findings.find((f) => f.code === "secret.possible")?.evidence).toEqual([
+      "AWS access key ID site/app.js line 1: AKIA… (20 chars)",
+    ]);
+    expect(analysis.dependencies.map((d) => `${d.specifier} ${d.bundled}`)).toEqual([
+      "app.js true",
+      "../../etc/passwd false",
+    ]);
   });
 });

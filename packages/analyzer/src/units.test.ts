@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { extractCssReferences } from "./css.ts";
+import { resolveLocalPath } from "./local.ts";
 import { analyzeScript } from "./script.ts";
 import { findSecrets, redactSecrets } from "./secrets.ts";
 import { capList, lineLookup, truncate } from "./text.ts";
@@ -170,5 +171,19 @@ describe("analyzeScript", () => {
     expect(facts.parsed).toBe(false);
     expect(facts.network.map((r) => [r.target, r.line])).toEqual([["/api/save", 3]]);
     expect(facts.storage.map((r) => r.line)).toEqual([4]);
+  });
+});
+
+describe("resolveLocalPath", () => {
+  it.each([
+    ["img/a.png", "site/index.html", "site", "site/img/a.png"],
+    ["../a.css", "site/css/main.css", "site", "site/a.css"],
+    ["/img/a.png", "site/css/main.css", "site", "site/img/a.png"],
+    ["./a%20b.png?v=2#top", "index.html", "", "a b.png"],
+    ["..\\lib\\x.js", "site/js/app.js", "", "site/lib/x.js"],
+    ["../../x.js", "site/index.html", "", null],
+    ["?v=1", "index.html", "", null],
+  ] as const)("%s from %s → %s", (spec, base, root, expected) => {
+    expect(resolveLocalPath(spec, base, root)).toBe(expected);
   });
 });

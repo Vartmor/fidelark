@@ -12,17 +12,21 @@ impact you observed. We aim to acknowledge reports within 7 days.
 
 ## Scope
 
-In scope: input parsing and classification, size and archive limits, report generation, the
-`convert` loaders (escaping the base directory, reaching non-public addresses, bypassing size,
-time or redirect limits or integrity checks), the `verify` browser isolation (network or file
-access, permissions, popups, downloads), and anything that could execute, fetch or leak content
-from a file without the user asking for it.
+In scope: input parsing and classification, ZIP reading (entries that escape the archive,
+symbolic links, ZIP bombs, headers that lie about sizes), size and archive limits, report
+generation, the `convert` loaders (escaping the base directory or the archive, reaching
+non-public addresses, bypassing size, time or redirect limits or integrity checks), the `verify`
+browser isolation (network or file access, permissions, popups, downloads), and anything that
+could execute, fetch or leak content from a file without the user asking for it.
 
 Fidelark is pre-alpha. Only the latest commit on `main` is supported.
 
 ## Principles
 
 - `inspect` and `convert` never execute the input.
+- ZIP archives are read in memory and never extracted. Entries with unsafe paths, symbolic links,
+  encryption, overlapping data or mismatched sizes or checksums are skipped and reported, and
+  entries that expand like ZIP bombs are refused before decompression.
 - `convert` downloads nothing unless `--allow-network` is given, and then only from public
   addresses, with size, time and redirect limits.
 - `verify` executes the file only inside a sandboxed browser with all network access, other

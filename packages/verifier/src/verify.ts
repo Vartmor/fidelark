@@ -47,8 +47,12 @@ export async function verifyFile(
   const bytes = await readInputFile(path, options.limits ?? DEFAULT_LIMITS);
   const report = inspectBytes(path, bytes, { now });
   if (report.input.format !== "html") {
+    const hint =
+      report.input.format === "zip"
+        ? `; convert it into one HTML file first: fidelark convert ${report.input.name}`
+        : "";
     throw new InputError(
-      `verify supports HTML files only; this file looks like ${report.input.format}`,
+      `verify supports HTML files only; this file looks like ${report.input.format}${hint}`,
     );
   }
 

@@ -1,6 +1,6 @@
 {
   "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
-  "schemaVersion": "0.2.0",
+  "schemaVersion": "0.3.0",
   "id": "remote-assets",
   "title": "Highlighted code page with a web font, remote stylesheets, a remote image and a CDN script",
   "category": "html",

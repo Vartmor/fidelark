@@ -2,7 +2,7 @@ import { z } from "zod";
 import { FidelityAssessment } from "./fidelity.ts";
 
 /** Version of the report and fixture contracts. Bump on any breaking change (semver). */
-export const SCHEMA_VERSION = "0.2.0";
+export const SCHEMA_VERSION = "0.3.0";
 
 export const Sha256 = z.string().regex(/^[a-f0-9]{64}$/, "lowercase hex SHA-256");
 
@@ -82,6 +82,10 @@ export const Dependency = z.strictObject({
   /** The reference as written in the artifact, with credentials redacted. */
   specifier: z.string().min(1),
   location: DependencyLocation,
+  /**
+   * True when the dependency ships with the artifact: embedded as a data URI or, for ZIP input,
+   * a file inside the same archive.
+   */
   bundled: z.boolean(),
   sha256: Sha256.optional(),
   /** Where the reference was found, e.g. `<script src> line 6`. */
@@ -112,6 +116,33 @@ export type Analysis = z.infer<typeof Analysis>;
 export const Tool = z.strictObject({ name: z.literal("fidelark"), version: z.string().min(1) });
 export type Tool = z.infer<typeof Tool>;
 
+/** A file read from a ZIP archive. Paths are normalized and always relative to the archive root. */
+export const ArchiveFile = z.strictObject({
+  path: z.string().min(1),
+  sizeBytes: z.int().nonnegative(),
+  sha256: Sha256,
+});
+export type ArchiveFile = z.infer<typeof ArchiveFile>;
+
+/** An archive entry that was not read, e.g. an unsafe path, a symbolic link or a ZIP bomb. */
+export const SkippedEntry = z.strictObject({
+  /** The name as stored in the archive, with control characters escaped. */
+  path: z.string().min(1),
+  reason: z.string().min(1),
+});
+export type SkippedEntry = z.infer<typeof SkippedEntry>;
+
+/** What a ZIP input contains. The archive is read in memory; nothing is extracted to disk. */
+export const ArchiveInfo = z.strictObject({
+  /** The HTML document that was analyzed, or null when none could be chosen. */
+  entry: z.string().min(1).nullable(),
+  files: z.array(ArchiveFile),
+  skipped: z.array(SkippedEntry),
+  /** Uncompressed size of the files that were read. */
+  totalBytes: z.int().nonnegative(),
+});
+export type ArchiveInfo = z.infer<typeof ArchiveInfo>;
+
 export const PortabilityReport = z.strictObject({
   schemaVersion: z.literal(SCHEMA_VERSION),
   tool: Tool,
@@ -120,5 +151,7 @@ export const PortabilityReport = z.strictObject({
   /** Null until the input has been analyzed; fidelity is never guessed. */
   analysis: Analysis.nullable(),
   findings: z.array(Finding),
+  /** Present for ZIP input only. */
+  archive: ArchiveInfo.optional(),
 });
 export type PortabilityReport = z.infer<typeof PortabilityReport>;

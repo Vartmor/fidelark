@@ -1,6 +1,6 @@
 {
   "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
-  "schemaVersion": "0.2.0",
+  "schemaVersion": "0.3.0",
   "id": "missing-local-files",
   "title": "Single HTML file that references local CSS, JS and image files it does not contain",
   "category": "html",

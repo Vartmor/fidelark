@@ -5,7 +5,7 @@ import { reveal } from "@/lib/motion";
 import { ROADMAP_URL } from "@/lib/site";
 
 const TODAY = [
-  "Inspect single HTML files without running them",
+  "Inspect HTML files and ZIP exports without running them",
   "Convert them into one self-contained HTML file",
   "Verify the result offline in a sandboxed browser",
   "Apache-2.0 open core with a regression test corpus",
@@ -14,7 +14,6 @@ const TODAY = [
 const NEXT = [
   "Turn React/JSX artifact source into runnable offline HTML",
   "Bundle ES module graphs",
-  "Inspect ZIP exports",
   "Preview files in a local sandbox",
 ];
 

@@ -4,12 +4,14 @@ import { basename } from "node:path";
 import { analyzeHtml } from "@fidelark/analyzer";
 import {
   type Analysis,
+  type ArchiveInfo,
   type Finding,
   type InputFormat,
   PortabilityReport,
   SCHEMA_VERSION,
 } from "@fidelark/schema";
 import pkg from "../package.json" with { type: "json" };
+import { type OpenedArchive, openArchive } from "./archive.ts";
 import { classifyInput } from "./classify.ts";
 import { DEFAULT_LIMITS, type Limits } from "./limits.ts";
 
@@ -19,6 +21,8 @@ export type InspectOptions = {
   limits?: Limits;
   /** Injectable clock for deterministic reports. */
   now?: () => Date;
+  /** ZIP input: the HTML document to analyze, by its path in the archive. */
+  entry?: string;
 };
 
 /** The input could not be opened as a regular file; no report can be produced. */
@@ -47,6 +51,7 @@ function buildReport(
   findings: Finding[],
   options: InspectOptions,
   analysis: Analysis | null = null,
+  archive?: ArchiveInfo,
 ): PortabilityReport {
   const now = options.now ?? (() => new Date());
   // Parsing guarantees every report we emit matches the published contract.
@@ -57,6 +62,7 @@ function buildReport(
     input: { name, format, sizeBytes, sha256 },
     analysis,
     findings,
+    ...(archive ? { archive } : {}),
   });
 }
 
@@ -66,13 +72,77 @@ export function inspectBytes(
   bytes: Uint8Array,
   options: InspectOptions = {},
 ): PortabilityReport {
+  return inspectInput(name, bytes, options).report;
+}
+
+/** Like `inspectBytes`, but also returns the opened archive for ZIP input, for convert. */
+export function inspectInput(
+  name: string,
+  bytes: Uint8Array,
+  options: InspectOptions = {},
+): { report: PortabilityReport; archive: OpenedArchive | null } {
   const limits = options.limits ?? DEFAULT_LIMITS;
   const displayName = basename(name);
   if (bytes.byteLength > limits.maxInputBytes) {
-    return buildReport(displayName, bytes.byteLength, null, "unknown", [tooLarge(limits)], options);
+    const report = buildReport(
+      displayName,
+      bytes.byteLength,
+      null,
+      "unknown",
+      [tooLarge(limits)],
+      options,
+    );
+    return { report, archive: null };
   }
   const sha256 = createHash("sha256").update(bytes).digest("hex");
   const { format, findings } = classifyInput(displayName, bytes);
+  if (options.entry !== undefined && format !== "zip") {
+    findings.push({
+      code: "input.entry-ignored",
+      severity: "warning",
+      message: "An entry document can only be chosen in a ZIP archive; it was ignored.",
+    });
+  }
+  if (format === "zip") {
+    const archive = openArchive(bytes, limits, options.entry);
+    findings.push(...archive.findings);
+    const html = archive.entry === null ? undefined : archive.files.get(archive.entry);
+    let analysis: Analysis | null = null;
+    if (archive.entry !== null && html !== undefined) {
+      const result = analyzeHtml(decodeText(html), {
+        documentPath: archive.entry,
+        rootPath: archive.root,
+        read: (path) => archive.files.get(path),
+      });
+      findings.push(...result.findings);
+      analysis = result.analysis;
+    }
+    const report = buildReport(
+      displayName,
+      bytes.byteLength,
+      sha256,
+      format,
+      findings,
+      options,
+      analysis,
+      archive.info,
+    );
+    return { report, archive };
+  }
+  return {
+    report: inspectText(displayName, bytes, sha256, format, findings, options),
+    archive: null,
+  };
+}
+
+function inspectText(
+  displayName: string,
+  bytes: Uint8Array,
+  sha256: string,
+  format: InputFormat,
+  findings: Finding[],
+  options: InspectOptions,
+): PortabilityReport {
   if (format === "html") {
     const result = analyzeHtml(decodeText(bytes));
     findings.push(...result.findings);

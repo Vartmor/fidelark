@@ -6,8 +6,10 @@ import {
   type DependencyKind,
   type Finding,
 } from "@fidelark/schema";
+import { extractCssReferences, hasFontFace } from "./css.ts";
 import { assessFidelity } from "./fidelity.ts";
 import { extractHtml, type RawReference } from "./html.ts";
+import { type LocalFiles, resolveLocalPath } from "./local.ts";
 import { analyzeScript, type CodeReference, type ScriptFacts } from "./script.ts";
 import { findSecrets, redactSecrets } from "./secrets.ts";
 import { capList, plural, truncate } from "./text.ts";
@@ -22,15 +24,24 @@ const show = (target: string | null) =>
   target === null ? "computed at runtime" : truncate(redactSecrets(target));
 const where = (r: CodeReference) => `${r.via} line ${r.line}`;
 
+/** A reference plus, inside an archive, the file it was written in and the file it names. */
+type SourcedReference = RawReference & {
+  /** Archive path the reference resolves against. */
+  base?: string;
+  /** Archive path of the file it names, when that file is in the archive. */
+  path?: string;
+};
+
 /** Merges references to the same resource and classifies where each one lives. */
-function buildDependencies(refs: RawReference[], importMap: Map<string, string>): Dependency[] {
+function buildDependencies(refs: SourcedReference[], importMap: Map<string, string>): Dependency[] {
   const byKey = new Map<string, Dependency>();
   for (const ref of refs) {
     const location = classifySpecifier(ref.specifier, { module: ref.module });
     if (location === null) continue;
     if (location === "bare" && resolvesThroughImportMap(ref.specifier, importMap)) continue;
     const specifier = truncate(redactSecrets(ref.specifier));
-    const key = `${ref.kind}|${specifier}`;
+    // Inside an archive, the same name in two folders is two files.
+    const key = `${ref.kind}|${ref.path ?? specifier}`;
     const existing = byKey.get(key);
     if (existing) {
       if (!existing.evidence.includes(ref.evidence)) existing.evidence.push(ref.evidence);
@@ -40,11 +51,115 @@ function buildDependencies(refs: RawReference[], importMap: Map<string, string>)
       kind: ref.kind,
       specifier,
       location,
-      bundled: location === "embedded",
+      bundled: location === "embedded" || ref.path !== undefined,
       evidence: [ref.evidence],
     });
   }
   return [...byKey.values()];
+}
+
+/**
+ * References made by code. Imports resolve against the file that contains them; workers and
+ * network requests resolve against the document, as in a browser.
+ */
+function codeReferences(
+  code: ScriptFacts,
+  codeBase: string | undefined,
+  documentBase: string | undefined,
+): SourcedReference[] {
+  const refs: SourcedReference[] = [];
+  const add = (
+    list: CodeReference[],
+    kind: DependencyKind,
+    module: boolean,
+    base: string | undefined,
+  ) => {
+    for (const r of list) {
+      if (r.target !== null && r.target !== "")
+        refs.push({ kind, specifier: r.target, module, evidence: where(r), base });
+    }
+  };
+  add(code.staticImports, "module", true, codeBase);
+  add(code.dynamicImports, "module", true, codeBase);
+  add(code.workers, "script", false, documentBase);
+  add(code.network, "network", false, documentBase);
+  add(code.websockets, "network", false, documentBase);
+  return refs;
+}
+
+/** Names the archive file in every reference found in its code, e.g. `fetch() in app.js`. */
+function inFile(facts: ScriptFacts, path: string): ScriptFacts {
+  const out = { ...facts };
+  for (const key of Object.keys(out) as (keyof ScriptFacts)[]) {
+    if (key === "parsed") continue;
+    (out[key] as CodeReference[]) = (facts[key] as CodeReference[]).map((r) => ({
+      ...r,
+      via: `${r.via} in ${path}`,
+    }));
+  }
+  return out;
+}
+
+type LocalScan = {
+  refs: SourcedReference[];
+  code: { label: string; facts: ScriptFacts }[];
+  texts: { path: string; text: string }[];
+  /** Module scripts loaded from archive files; browsers block these from disk (file://). */
+  modules: string[];
+  capabilities: Set<Capability>;
+};
+
+const decoder = new TextDecoder("utf-8");
+
+/**
+ * Follows references into the archive: stylesheets (with their imports, fonts and images),
+ * scripts and module graphs are read and analyzed like inline code. Each file is read once.
+ */
+function scanLocalFiles(initial: SourcedReference[], local: LocalFiles): LocalScan {
+  const scan: LocalScan = {
+    refs: [],
+    code: [],
+    texts: [],
+    modules: [],
+    capabilities: new Set(),
+  };
+  const queue = [...initial];
+  const visited = new Set<string>();
+  for (let ref = queue.shift(); ref !== undefined; ref = queue.shift()) {
+    scan.refs.push(ref);
+    if (ref.kind === "network" || ref.base === undefined) continue;
+    if (classifySpecifier(ref.specifier, { module: ref.module }) !== "relative") continue;
+    const path = resolveLocalPath(ref.specifier, ref.base, local.rootPath);
+    const bytes = path === null ? undefined : local.read(path);
+    if (path === null || bytes === undefined) continue;
+    ref.path = path;
+    const followed = ref.kind === "stylesheet" || ref.kind === "script" || ref.kind === "module";
+    if (!followed || visited.has(path)) continue;
+    visited.add(path);
+    const text = decoder.decode(bytes);
+    scan.texts.push({ path, text });
+    if (ref.kind === "stylesheet") {
+      scan.capabilities.add("css");
+      if (hasFontFace(text)) scan.capabilities.add("web-font");
+      for (const css of extractCssReferences(text)) {
+        if (css.kind === "image") scan.capabilities.add("image");
+        queue.push({
+          kind: css.kind,
+          specifier: css.url,
+          module: false,
+          evidence: `${path} line ${css.line}`,
+          base: path,
+        });
+      }
+      continue;
+    }
+    const module = ref.kind === "module";
+    if (module) scan.modules.push(path);
+    const facts = inFile(analyzeScript(text, { module }), path);
+    scan.code.push({ label: path, facts });
+    queue.push(...codeReferences(facts, path, local.documentPath));
+  }
+  return scan;
 }
 
 function resolvesThroughImportMap(specifier: string, importMap: Map<string, string>): boolean {
@@ -79,35 +194,32 @@ function mergeScriptFacts(all: ScriptFacts[]): ScriptFacts {
 
 /**
  * Statically analyzes one HTML document: dependencies, permissions, capabilities, findings
- * and a fidelity assessment. Deterministic; never executes scripts or fetches resources.
+ * and a fidelity assessment. With `local` (the other files of a ZIP export), references to
+ * those files are followed and their code and styles analyzed too. Deterministic; never
+ * executes scripts or fetches resources.
  */
-export function analyzeHtml(html: string): AnalysisResult {
+export function analyzeHtml(html: string, local?: LocalFiles): AnalysisResult {
   const facts = extractHtml(html);
+  const documentBase = local?.documentPath;
   const perScript = facts.inlineCode.map((c) => ({
-    code: c,
+    label: `${c.label} line ${c.startLine}`,
     facts: analyzeScript(c.code, { module: c.module, startLine: c.startLine }),
   }));
-  const code = mergeScriptFacts(perScript.map((p) => p.facts));
-  const unparsed = perScript
-    .filter((p) => !p.facts.parsed)
-    .map((p) => `${p.code.label} line ${p.code.startLine}`);
 
   // Code-level references become dependencies too.
-  const refs: RawReference[] = [...facts.references];
-  const addCodeRefs = (list: CodeReference[], kind: DependencyKind, module: boolean) => {
-    for (const r of list) {
-      if (r.target !== null && r.target !== "")
-        refs.push({ kind, specifier: r.target, module, evidence: where(r) });
-    }
-  };
-  addCodeRefs(code.staticImports, "module", true);
-  addCodeRefs(code.dynamicImports, "module", true);
-  addCodeRefs(code.workers, "script", false);
-  addCodeRefs(code.network, "network", false);
-  addCodeRefs(code.websockets, "network", false);
-  const dependencies = buildDependencies(refs, facts.importMap);
+  const initial: SourcedReference[] = [
+    ...facts.references.map((r) => ({ ...r, base: documentBase })),
+    ...perScript.flatMap((p) => codeReferences(p.facts, documentBase, documentBase)),
+  ];
+  const scan = local
+    ? scanLocalFiles(initial, local)
+    : { refs: initial, code: [], texts: [], modules: [], capabilities: new Set<Capability>() };
+  const allCode = [...perScript, ...scan.code];
+  const code = mergeScriptFacts(allCode.map((p) => p.facts));
+  const unparsed = allCode.filter((p) => !p.facts.parsed).map((p) => p.label);
+  const dependencies = buildDependencies(scan.refs, facts.importMap);
 
-  const capabilities = new Set<Capability>(facts.capabilities);
+  const capabilities = new Set<Capability>([...facts.capabilities, ...scan.capabilities]);
   if (dependencies.some((d) => d.kind === "image")) capabilities.add("image");
   if (dependencies.some((d) => d.kind === "font")) capabilities.add("web-font");
   if (code.network.length > 0) capabilities.add("network-fetch");
@@ -134,6 +246,8 @@ export function analyzeHtml(html: string): AnalysisResult {
     computedCode,
     remoteForms: facts.remoteForms,
     hostApi: code.hostApi.map(where),
+    inArchive: local !== undefined,
+    archiveModules: scan.modules,
   });
 
   const unbundled = dependencies.filter((d) => !d.bundled);
@@ -146,6 +260,12 @@ export function analyzeHtml(html: string): AnalysisResult {
     storage: code.storage.length > 0,
   };
 
+  const secrets = [
+    ...findSecrets(html).map((h) => `${h.kind} line ${h.line}: ${h.preview}`),
+    ...scan.texts.flatMap(({ path, text }) =>
+      findSecrets(text).map((h) => `${h.kind} ${path} line ${h.line}: ${h.preview}`),
+    ),
+  ];
   const findings = buildFindings({
     facts,
     code,
@@ -153,7 +273,9 @@ export function analyzeHtml(html: string): AnalysisResult {
     unparsed,
     runtimeNetwork,
     computedCode,
-    html,
+    secrets,
+    modules: scan.modules,
+    inArchive: local !== undefined,
   });
 
   return {
@@ -177,7 +299,10 @@ type FindingInput = {
   unparsed: string[];
   runtimeNetwork: string[];
   computedCode: string[];
-  html: string;
+  /** Possible credentials, already formatted as evidence. */
+  secrets: string[];
+  modules: string[];
+  inArchive: boolean;
 };
 
 function buildFindings({
@@ -187,7 +312,9 @@ function buildFindings({
   unparsed,
   runtimeNetwork,
   computedCode,
-  html,
+  secrets,
+  modules,
+  inArchive,
 }: FindingInput): Finding[] {
   const findings: Finding[] = [];
   const add = (id: string, severity: Finding["severity"], message: string, evidence?: string[]) =>
@@ -217,7 +344,9 @@ function buildFindings({
     add(
       "dependency.missing",
       "warning",
-      `${plural(missing.length, "local file")} referenced but not included in this single file. Inspect the ZIP export to include them.`,
+      inArchive
+        ? `${plural(missing.length, "local file")} referenced but not found in the archive.`
+        : `${plural(missing.length, "local file")} referenced but not included in this single file. Inspect the ZIP export to include them.`,
       missing.map((d) => `${d.kind}: ${d.specifier}`),
     );
   }
@@ -227,6 +356,14 @@ function buildFindings({
       "warning",
       `${plural(bare.length, "module")} imported by name without an import map; browsers cannot load them as written.`,
       bare.map((d) => d.specifier),
+    );
+  }
+  if (modules.length > 0) {
+    add(
+      "script.module-files",
+      "warning",
+      `${plural(modules.length, "module script")} ${modules.length === 1 ? "is" : "are"} loaded from separate files. Browsers do not run these when the page is opened from disk; open it through a local web server.`,
+      modules,
     );
   }
   if (runtimeNetwork.length > 0) {
@@ -329,13 +466,12 @@ function buildFindings({
       code.hostApi.map(where),
     );
   }
-  const secrets = findSecrets(html);
   if (secrets.length > 0) {
     add(
       "secret.possible",
       "warning",
       `Found ${plural(secrets.length, "possible credential")}. Remove or rotate them before sharing this file.`,
-      secrets.map((s) => `${s.kind} line ${s.line}: ${s.preview}`),
+      secrets,
     );
   }
   add(

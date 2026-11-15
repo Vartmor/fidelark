@@ -1,0 +1,31 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.3.0",
+  "id": "lesson-export-zip",
+  "title": "Lesson exported as a ZIP folder: page, stylesheet, script and images, with macOS metadata",
+  "category": "html-zip",
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
+  "artifact": {
+    "path": "artifact.zip",
+    "sha256": "f5a4ac3200e1250bab002edad2ac663f306b719418b0e4de9eee6674f4daa669"
+  },
+  "expected": {
+    "format": "zip",
+    "capabilities": [
+      "html",
+      "css",
+      "external-script",
+      "image"
+    ],
+    "fidelity": "exact-portable",
+    "offline": "not-tested",
+    "findings": [
+      "zip.metadata"
+    ]
+  },
+  "baselines": [],
+  "notes": "Everything the page needs is in the archive. Converting it gives one file that passes `fidelark verify` (tests/zip-fixtures.test.ts). Built by packages/core/scripts/zip-fixtures.ts."
+}

@@ -39,6 +39,17 @@ export function formatReport(report: PortabilityReport): string {
     row("Size", formatBytes(input.sizeBytes)),
     row("SHA-256", input.sha256 ?? "(not computed)"),
   ];
+  if (report.archive) {
+    const { files, skipped, totalBytes, entry } = report.archive;
+    const notRead = skipped.length > 0 ? `; ${skipped.length} not read (see findings)` : "";
+    lines.push(
+      row(
+        "Archive",
+        `${files.length} file${files.length === 1 ? "" : "s"}, ${formatBytes(totalBytes)}${notRead}`,
+      ),
+      row("Entry", entry ?? "none"),
+    );
+  }
 
   if (analysis) {
     const { overall, axes } = analysis.fidelity;

@@ -1,0 +1,32 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.3.0",
+  "id": "zip-path-traversal",
+  "title": "Archive with entries that escape the folder: .., absolute and drive paths, a symlink, a terminal escape and a duplicate name",
+  "category": "adversarial",
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
+  "artifact": {
+    "path": "artifact.zip",
+    "sha256": "1fd1c9af631f97a714a07db86bdf6a39e05d483ac60ce6e0858763c7e9394b2d"
+  },
+  "expected": {
+    "format": "zip",
+    "capabilities": [
+      "html",
+      "external-script"
+    ],
+    "fidelity": "static-fallback",
+    "offline": "not-tested",
+    "findings": [
+      "zip.unsafe-path",
+      "zip.symlink",
+      "zip.duplicate-entry",
+      "dependency.missing"
+    ]
+  },
+  "baselines": [],
+  "notes": "None of the unsafe entries may be read or resolved; the first index.html wins and names are shown with control characters escaped. Built by packages/core/scripts/zip-fixtures.ts."
+}

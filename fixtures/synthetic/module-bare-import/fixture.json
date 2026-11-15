@@ -1,6 +1,6 @@
 {
   "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
-  "schemaVersion": "0.2.0",
+  "schemaVersion": "0.3.0",
   "id": "module-bare-import",
   "title": "Module script importing packages by bare name without an import map",
   "category": "html",

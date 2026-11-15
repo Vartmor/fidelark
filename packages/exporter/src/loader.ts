@@ -17,9 +17,17 @@ export type LoadedResource = {
 
 export type Loader = (url: URL) => Promise<LoadedResource>;
 
+/** In-memory files, such as a ZIP export, served for `file:` URLs under `root`. */
+export type ArchiveSource = {
+  root: URL;
+  read(path: string): Uint8Array | undefined;
+};
+
 export type LoaderOptions = {
   /** Local files are only read from inside this directory. */
-  baseDir: string;
+  baseDir?: string;
+  /** When set, local files come only from these files; the disk is never read. */
+  archive?: ArchiveSource;
   /** Remote resources are only downloaded when this is true. */
   allowNetwork: boolean;
   maxResourceBytes: number;
@@ -52,9 +60,27 @@ async function readLocal(url: URL, baseDir: string, maxBytes: number): Promise<U
   }
 }
 
+function readArchive(url: URL, archive: ArchiveSource, maxBytes: number): Uint8Array {
+  if (!url.pathname.startsWith(archive.root.pathname)) throw new LoadError("outside the archive");
+  let path: string;
+  try {
+    path = url.pathname
+      .slice(archive.root.pathname.length)
+      .split("/")
+      .map(decodeURIComponent)
+      .join("/");
+  } catch {
+    throw new LoadError("file not found in the archive");
+  }
+  const bytes = archive.read(path);
+  if (bytes === undefined) throw new LoadError("file not found in the archive");
+  if (bytes.byteLength > maxBytes) throw new LoadError(`larger than the ${maxBytes}-byte limit`);
+  return bytes;
+}
+
 /**
- * Creates a loader that reads local files confined to `baseDir` and, only when allowed,
- * downloads public http(s) resources. Results are cached per URL.
+ * Creates a loader that reads local files confined to `baseDir`, or only from `archive`, and,
+ * only when allowed, downloads public http(s) resources. Results are cached per URL.
  */
 export function createLoader(options: LoaderOptions): Loader {
   const cache = new Map<string, Promise<LoadedResource>>();
@@ -63,7 +89,11 @@ export function createLoader(options: LoaderOptions): Loader {
 
   const load = async (url: URL): Promise<LoadedResource> => {
     if (url.protocol === "file:") {
-      const bytes = await readLocal(url, options.baseDir, options.maxResourceBytes);
+      let bytes: Uint8Array;
+      if (options.archive) bytes = readArchive(url, options.archive, options.maxResourceBytes);
+      else if (options.baseDir !== undefined)
+        bytes = await readLocal(url, options.baseDir, options.maxResourceBytes);
+      else throw new LoadError("local files are not allowed");
       return { bytes, mediaType: mediaTypeOf(url, null), url, from: "local", sha256: hash(bytes) };
     }
     if (url.protocol === "http:" || url.protocol === "https:") {

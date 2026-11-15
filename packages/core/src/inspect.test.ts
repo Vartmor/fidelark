@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { PortabilityReport } from "@fidelark/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { InputError, inspectBytes, inspectFile } from "./inspect.ts";
+import { buildZip } from "./testing.ts";
 
 const fixedNow = () => new Date("2026-11-14T12:00:00.000Z");
 const html = new TextEncoder().encode("<!doctype html><html><body>Hi</body></html>");
@@ -44,6 +45,43 @@ describe("inspectBytes", () => {
     expect(report.input.sha256).toBeNull();
     expect(report.input.format).toBe("unknown");
     expect(report.findings.map((f) => f.code)).toEqual(["input.too-large"]);
+  });
+});
+
+describe("inspectBytes with ZIP input", () => {
+  const codes = (bytes: Uint8Array, entry?: string) =>
+    inspectBytes("export.zip", bytes, entry === undefined ? {} : { entry }).findings.map(
+      (f) => `${f.severity} ${f.code}`,
+    );
+
+  it("reports an archive it cannot read without guessing fidelity", () => {
+    const report = inspectBytes("export.zip", new Uint8Array([0x50, 0x4b, 3, 4, 0, 0]));
+    expect(report.input.format).toBe("zip");
+    expect(report.analysis).toBeNull();
+    expect(report.archive).toEqual({ entry: null, files: [], skipped: [], totalBytes: 0 });
+    expect(report.findings.map((f) => f.code)).toEqual(["zip.unreadable"]);
+  });
+
+  it("chooses index.html, then the only page, and otherwise explains why it cannot", () => {
+    const index = buildZip([
+      { name: "about.html", content: "<p>About</p>" },
+      { name: "index.html", content: "<p>Home</p>" },
+    ]);
+    expect(inspectBytes("export.zip", index).archive?.entry).toBe("index.html");
+    expect(
+      inspectBytes("export.zip", buildZip([{ name: "deck/slides.htm", content: "x" }])).archive
+        ?.entry,
+    ).toBe("deck/slides.htm");
+    expect(codes(buildZip([{ name: "notes.txt", content: "x" }]))).toEqual(["error zip.no-entry"]);
+    expect(codes(index, "missing.html")).toEqual(["error zip.entry-not-found"]);
+    expect(inspectBytes("export.zip", index, { entry: "./about.html" }).archive?.entry).toBe(
+      "about.html",
+    );
+  });
+
+  it("warns when an entry is chosen for input that is not a ZIP", () => {
+    const report = inspectBytes("quiz.html", html, { entry: "index.html" });
+    expect(report.findings.map((f) => f.code)).toContain("input.entry-ignored");
   });
 });
 

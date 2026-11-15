@@ -156,7 +156,8 @@ export function extractHtml(html: string): HtmlFacts {
         if (src !== undefined) {
           facts.externalScripts++;
           facts.capabilities.add("external-script");
-          addRef(module ? "module" : "script", src, `<script src> line ${line}`, module);
+          // src is a URL, not a module specifier, so "app.js" is a relative path, never bare.
+          addRef(module ? "module" : "script", src, `<script src> line ${line}`);
         } else {
           const code = textContent(el);
           if (code.trim() === "") break;
@@ -184,7 +185,7 @@ export function extractHtml(html: string): HtmlFacts {
           facts.capabilities.add("css");
           if (href && WEB_FONT_HOSTS.test(href)) facts.capabilities.add("web-font");
           addRef("stylesheet", href, evidence);
-        } else if (rel.includes("modulepreload")) addRef("module", href, evidence, true);
+        } else if (rel.includes("modulepreload")) addRef("module", href, evidence);
         else if (rel.includes("preload") || rel.includes("prefetch")) {
           const kind: DependencyKind =
             as === "font"

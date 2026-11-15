@@ -39,6 +39,21 @@ test: add one whenever the analyzer learns something new or gets something wrong
 When a Chromium-based browser is available, every fixture is also opened offline with
 `fidelark verify` and its verdict must match `expected.offline`.
 
+## ZIP fixtures
+
+ZIP archives are binary, so their contents live in
+[`packages/core/scripts/zip-fixtures.ts`](../packages/core/scripts/zip-fixtures.ts), where they
+can be reviewed. After changing one, rebuild the archives and update the hash in its
+`fixture.json`:
+
+```bash
+node packages/core/scripts/zip-fixtures.ts
+```
+
+`tests/zip-fixtures.test.ts` fails if a committed archive differs from what the script builds.
+`verify` opens HTML only, so ZIP fixtures use `"offline": "not-tested"`; the same test converts
+the lesson export and verifies the result offline instead.
+
 ## Recording baseline comparisons
 
 When comparing Fidelark with existing tools, add each collected artifact as a fixture, then record

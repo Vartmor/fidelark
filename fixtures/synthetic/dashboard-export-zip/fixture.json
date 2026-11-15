@@ -1,0 +1,37 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.3.0",
+  "id": "dashboard-export-zip",
+  "title": "Dashboard exported from a bundler: module scripts under /assets, a live API call and a missing logo",
+  "category": "html-zip",
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
+  "artifact": {
+    "path": "artifact.zip",
+    "sha256": "5a93b8d1fae1fde698756dec134ba2fa8ebe19a9ebb39fbba61053e783b8e6b1"
+  },
+  "expected": {
+    "format": "zip",
+    "capabilities": [
+      "html",
+      "css",
+      "external-script",
+      "module-script",
+      "image",
+      "network-fetch",
+      "storage"
+    ],
+    "fidelity": "connected",
+    "offline": "not-tested",
+    "findings": [
+      "script.module-files",
+      "network.runtime",
+      "dependency.missing",
+      "storage.persistent"
+    ]
+  },
+  "baselines": [],
+  "notes": "Root-relative paths resolve against the archive. Module scripts in separate files do not run from disk, and the sales data needs a connection. Built by packages/core/scripts/zip-fixtures.ts."
+}

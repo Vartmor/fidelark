@@ -1,0 +1,29 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.3.0",
+  "id": "zip-bomb",
+  "title": "ZIP bomb: 20 MiB of zeros in 20 KB, and entries that share one copy of compressed data",
+  "category": "adversarial",
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
+  "artifact": {
+    "path": "artifact.zip",
+    "sha256": "eef181855819b0978ec67f354c1d22cf71b9fa68646795f47b9c454036dbb519"
+  },
+  "expected": {
+    "format": "zip",
+    "capabilities": [
+      "html"
+    ],
+    "fidelity": "exact-portable",
+    "offline": "not-tested",
+    "findings": [
+      "zip.compression-ratio",
+      "zip.overlapping-entry"
+    ]
+  },
+  "baselines": [],
+  "notes": "Both bombs are refused from the headers alone, before anything is decompressed. Built by packages/core/scripts/zip-fixtures.ts."
+}

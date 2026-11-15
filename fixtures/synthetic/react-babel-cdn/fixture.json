@@ -1,6 +1,6 @@
 {
   "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
-  "schemaVersion": "0.2.0",
+  "schemaVersion": "0.3.0",
   "id": "react-babel-cdn",
   "title": "React flashcards compiled in the browser with Babel, saving progress to localStorage",
   "category": "html",

@@ -16,3 +16,4 @@
 | [009](0009-acik-cekirdek-ve-lisans.md)  | Açık çekirdek ve lisans (Apache-2.0)                                 | Kabul edildi |
 | [010](0010-html-statik-analiz-ve-fidelity-kurallari.md) | HTML statik analiz ve fidelity kuralları                  | Kabul edildi |
 | [011](0011-standalone-html-export-ve-cevrimdisi-dogrulama.md) | Bağımsız HTML export ve çevrimdışı doğrulama | Kabul edildi |
+| [012](0012-zip-export-ve-guvenli-arsiv-okuma.md) | ZIP export'larını içe alma ve güvenli arşiv okuma | Kabul edildi |

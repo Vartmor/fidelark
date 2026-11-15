@@ -1,6 +1,6 @@
 {
   "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
-  "schemaVersion": "0.2.0",
+  "schemaVersion": "0.3.0",
   "id": "form-exfiltration",
   "title": "Page that posts form data and cookies to a remote host, redirects itself and embeds a remote frame",
   "category": "adversarial",

@@ -18,6 +18,10 @@ export type FidelitySignals = {
   computedCode: readonly string[];
   remoteForms: readonly string[];
   hostApi: readonly string[];
+  /** True when the document was analyzed with the other files of its ZIP archive. */
+  inArchive?: boolean;
+  /** Module scripts loaded from archive files; they need bundling or a web server to run. */
+  archiveModules?: readonly string[];
 };
 
 type Rule = { class: FidelityClass; evidence: string };
@@ -40,11 +44,14 @@ const describe = (deps: readonly Dependency[]) =>
   ).join(", ");
 
 /**
- * Deterministic fidelity rules for a single HTML file (docs/adr/0010). The result is what
- * static analysis says can be preserved; it is not verified by an offline export yet.
+ * Deterministic fidelity rules for an HTML document, alone or in its ZIP archive
+ * (docs/adr/0010, docs/adr/0012). The result is what static analysis says can be preserved;
+ * it is not verified by an offline export yet.
  */
 export function assessFidelity(s: FidelitySignals): FidelityAssessment {
   const deps = s.dependencies.filter((d) => !d.bundled);
+  const notHere = s.inArchive ? "not in the archive" : "not included in this file";
+  const archiveModules = s.archiveModules ?? [];
   const remote = (kinds: Set<string>) =>
     deps.filter((d) => kinds.has(d.kind) && d.location === "remote");
   const missing = (kinds: Set<string>) =>
@@ -63,7 +70,7 @@ export function assessFidelity(s: FidelitySignals): FidelityAssessment {
   if (missingVisual.length > 0) {
     visualRules.push({
       class: "semantic-equivalent",
-      evidence: `${plural(missingVisual.length, "local style or media file")} ${missingVisual.length === 1 ? "is" : "are"} not included in this file: ${describe(missingVisual)}.`,
+      evidence: `${plural(missingVisual.length, "local style or media file")} ${missingVisual.length === 1 ? "is" : "are"} ${notHere}: ${describe(missingVisual)}.`,
     });
   }
   const remoteVisual = remote(VISUAL_KINDS);
@@ -75,7 +82,9 @@ export function assessFidelity(s: FidelitySignals): FidelityAssessment {
   }
   const visual = axis(visualRules, {
     class: "exact-portable",
-    evidence: "All styles and images are inline or embedded.",
+    evidence: s.inArchive
+      ? "All styles and images are inline, embedded or in the archive."
+      : "All styles and images are inline or embedded.",
   });
 
   // Behavioral
@@ -90,7 +99,7 @@ export function assessFidelity(s: FidelitySignals): FidelityAssessment {
   if (missingCode.length > 0) {
     behaviorRules.push({
       class: "static-fallback",
-      evidence: `${plural(missingCode.length, "script")} cannot be resolved from this file: ${describe(missingCode)}.`,
+      evidence: `${plural(missingCode.length, "script")} ${s.inArchive ? "cannot be found in the archive" : "cannot be resolved from this file"}: ${describe(missingCode)}.`,
     });
   }
   if (s.runtimeNetwork.length > 0) {
@@ -114,6 +123,12 @@ export function assessFidelity(s: FidelitySignals): FidelityAssessment {
       class: "connected",
       evidence: "Embedded remote pages need a connection.",
     });
+  if (archiveModules.length > 0) {
+    behaviorRules.push({
+      class: "bundled-portable",
+      evidence: `${plural(archiveModules.length, "module script")} in the archive ${archiveModules.length === 1 ? "needs" : "need"} bundling or a local web server to run from disk: ${capList(archiveModules, 3).join(", ")}.`,
+    });
+  }
   const remoteCode = remote(CODE_KINDS);
   if (remoteCode.length > 0) {
     behaviorRules.push({
@@ -124,7 +139,12 @@ export function assessFidelity(s: FidelitySignals): FidelityAssessment {
   const behavioral = axis(
     behaviorRules,
     s.scriptsPresent
-      ? { class: "exact-portable", evidence: "Scripts are inline and make no network requests." }
+      ? {
+          class: "exact-portable",
+          evidence: s.inArchive
+            ? "Scripts are inline or in the archive and make no network requests."
+            : "Scripts are inline and make no network requests.",
+        }
       : { class: "exact-portable", evidence: "No scripts; the document is static." },
   );
 

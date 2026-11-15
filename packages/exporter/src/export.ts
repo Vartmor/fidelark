@@ -19,6 +19,8 @@ type ParentNode = DefaultTreeAdapterTypes.ParentNode;
 export type ExportOptions = {
   /** File name of the source, recorded in the manifest. */
   sourceName: string;
+  /** Hash recorded for the source; defaults to the hash of `html`. For a ZIP, the archive's. */
+  sourceSha256?: string;
   /** Location of the source document; relative references resolve against it. */
   documentUrl: URL;
   /** Root for root-relative paths (`/img/a.png`); defaults to the document's directory. */
@@ -327,7 +329,7 @@ export async function exportStandaloneHtml(
 
   const resolvedEdits = await Promise.all(edits.map(async (e) => ({ ...e, text: await e.text })));
 
-  const sourceSha256 = createHash("sha256").update(html).digest("hex");
+  const sourceSha256 = options.sourceSha256 ?? createHash("sha256").update(html).digest("hex");
   const manifest: ExportManifest = {
     schemaVersion: SCHEMA_VERSION,
     tool: { name: "fidelark", version: options.toolVersion },

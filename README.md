@@ -33,8 +33,8 @@ and what doesn't, and exports them as portable files: **Import. Inspect. Preserv
 
 ## What works today
 
-`fidelark inspect` analyzes a **single HTML file** without executing it and writes a
-schema-versioned portability report:
+`fidelark inspect` analyzes a **single HTML file** or a **ZIP export** without executing it and
+writes a schema-versioned portability report:
 
 - **Dependencies:** scripts, modules, stylesheets, fonts, images, media, frames and runtime
   network requests, each marked remote, relative, embedded or bare, with line numbers.
@@ -42,21 +42,26 @@ schema-versioned portability report:
 - **Fidelity:** content, visual and behavioral fidelity assessed separately, each with evidence.
 - **Findings:** remote and missing files, network calls, remote forms and frames, dynamic code,
   APIs that exist only inside an AI platform, and possible credentials (always redacted).
+- **ZIP exports:** read in memory and never extracted. The page is `index.html` (or the only
+  HTML file, or `--entry`), and its stylesheets, scripts and module graphs inside the archive are
+  followed and analyzed too. Unsafe entries (paths that leave the archive, absolute paths,
+  symbolic links), ZIP bombs and damaged entries are refused and reported.
 
-`fidelark convert` bundles an HTML file and its scripts, stylesheets, fonts, images and media into
-**one self-contained HTML file**, with a provenance manifest inside it. `fidelark verify` opens a
+`fidelark convert` bundles an HTML file, or the page of a ZIP export, and its scripts,
+stylesheets, fonts, images and media into **one self-contained HTML file**, with a provenance
+manifest inside it. `fidelark verify` opens a
 file in a **sandboxed browser with all network access blocked** and reports what it tried to
 load and which errors it raised.
 
-Other formats (React/JSX source, Markdown, ZIP) are recognized but not analyzed or converted yet.
+Other formats (React/JSX source, Markdown) are recognized but not analyzed or converted yet.
 ES module graphs, embedded pages and live network calls stay external, and conversions say so.
 
 ## Principles
 
 - **Local-first:** everything runs on your machine; the CLI sends no content and no telemetry.
 - **Safe by default:** `inspect` and `convert` never execute the input. `convert` reads local
-  files only from the input's folder and downloads only with `--allow-network`, only from public
-  addresses. `verify` runs the file only inside a sandboxed browser with the network blocked.
+  files only from the input's folder, or only from inside the ZIP, and downloads only with
+  `--allow-network`, only from public addresses. Archives are never extracted to disk. `verify` runs the file only inside a sandboxed browser with the network blocked.
 - **Honest portability:** fidelity is reported per axis with evidence, never as a percentage.
 - **Deterministic:** the same input always gives the same report; no AI model is involved.
 
@@ -68,6 +73,7 @@ Requires Node.js 24 and pnpm.
 pnpm install
 pnpm fidelark inspect path/to/artifact.html
 pnpm fidelark inspect path/to/artifact.html --json
+pnpm fidelark inspect path/to/export.zip
 ```
 
 Exit codes: `0` success, `1` problems found (errors in the report, failed embeds, or a verify
@@ -80,6 +86,9 @@ verdict other than passed), `2` usage or input error. JSON output follows the sc
 # Bundle local dependencies into one file (writes artifact.fidelark.html)
 pnpm fidelark convert path/to/artifact.html
 
+# Turn a ZIP export into one file (pick the page with --entry if there are several)
+pnpm fidelark convert path/to/export.zip
+
 # Also download remote scripts, stylesheets, fonts and images (public addresses only)
 pnpm fidelark convert path/to/artifact.html --allow-network -o portable.html
 
@@ -88,7 +97,8 @@ pnpm fidelark verify portable.html
 ```
 
 `convert` checks Subresource Integrity hashes, keeps `defer`/`async` semantics, removes resource
-hints that would only fail offline, and refuses files outside the input's folder (or `--base`).
+hints that would only fail offline, and refuses files outside the input's folder (or `--base`),
+or outside the archive for a ZIP.
 Every output carries a `<script type="application/json" id="fidelark-export">` manifest listing
 each embedded resource with its SHA-256, and each reference left external with the reason.
 
@@ -153,9 +163,9 @@ The rules that map findings to classes are documented in
 - [x] Input classification, size limits and schema-versioned reports
 - [x] Static analysis and fidelity assessment for single HTML files
 - [x] Standalone HTML export with automated offline verification
+- [x] ZIP export inspection and conversion
 - [ ] React/JSX artifact source → runnable offline HTML
 - [ ] Bundling ES module graphs
-- [ ] ZIP export inspection
 - [ ] Sandboxed local preview
 
 ## Repository layout
@@ -163,14 +173,14 @@ The rules that map findings to classes are documented in
 ```text
 packages/
   schema/     contracts (Zod) and published JSON Schema: fidelity classes, reports, fixtures
-  core/       input classification, limits, inspection pipeline
+  core/       input classification, limits, safe ZIP reading, inspection pipeline
   analyzer/   static HTML, CSS and JavaScript analysis; fidelity rules
   exporter/   standalone HTML export with permissioned local and network loaders
   verifier/   offline verification in a sandboxed browser
   cli/        the `fidelark` command
 fixtures/     test corpus with expected results (see fixtures/README.md)
 apps/site/    promo website on GitHub Pages (Vite, React; reports generated from fixtures)
-tests/        cross-package tests (fixture corpus, brand asset integrity, site data)
+tests/        cross-package tests (fixture corpus, ZIP exports, brand asset integrity, site data)
 branding/     brand identity: logos, tokens, UI kit, guidelines (see branding/README.md)
 docs/adr/     architecture decision records
 ```
@@ -188,7 +198,8 @@ TypeScript runs directly on Node's built-in type stripping, so there is no build
 see [ADR-008](docs/adr/0008-monorepo-ve-arac-secimi.md). Every fixture's expected capabilities,
 fidelity and findings are checked on each test run, and, when a browser is available, its
 offline verdict too, so changes show up as regressions. Export and verification decisions are in
-[ADR-011](docs/adr/0011-standalone-html-export-ve-cevrimdisi-dogrulama.md).
+[ADR-011](docs/adr/0011-standalone-html-export-ve-cevrimdisi-dogrulama.md), ZIP handling in
+[ADR-012](docs/adr/0012-zip-export-ve-guvenli-arsiv-okuma.md).
 
 ## Brand
 

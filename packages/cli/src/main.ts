@@ -22,22 +22,26 @@ export const EXIT = { ok: 0, findings: 1, usage: 2 } as const;
 const HELP = `fidelark ${VERSION} — keep AI work usable beyond the chat
 
 Usage:
-  fidelark inspect <file> [--json]
-  fidelark convert <file.html> [-o <out.html>] [--allow-network] [--base <dir>] [--force] [--json]
+  fidelark inspect <file> [--entry <path>] [--json]
+  fidelark convert <file.html|file.zip> [-o <out.html>] [--entry <path>] [--allow-network]
+                   [--base <dir>] [--force] [--json]
   fidelark verify <file.html> [--static-only] [--no-sandbox] [--json]
 
 Commands:
-  inspect   Analyze a file and print its portability report (HTML today).
-            Never executes, renders or fetches anything from the input.
-  convert   Bundle an HTML file and its dependencies into one self-contained HTML file.
-            Local files are read only from the input's directory (or --base). Remote files
-            are downloaded only with --allow-network. The input is never executed.
+  inspect   Analyze a file and print its portability report (HTML files and ZIP exports).
+            Never executes, renders or fetches anything from the input; a ZIP is read in
+            memory and never extracted.
+  convert   Bundle an HTML file, or the page in a ZIP export, and its dependencies into one
+            self-contained HTML file. Local files are read only from the input's directory
+            (or --base), or only from the archive. Remote files are downloaded only with
+            --allow-network. The input is never executed.
   verify    Check that an HTML file works offline: open it in a sandboxed browser with all
             network access blocked and report blocked requests and errors. This runs the
             file's scripts inside the browser sandbox.
 
 Options:
   -o, --output <file>  Output path for convert (default: <name>.fidelark.html)
+  --entry <path>       The HTML document to use in a ZIP export (default: index.html)
   --allow-network      Let convert download remote dependencies (public addresses only)
   --base <dir>         Directory convert may read local dependencies from
   --force              Let convert overwrite an existing output file
@@ -49,8 +53,8 @@ Options:
 `;
 
 const COMMAND_OPTIONS: Record<string, Set<string>> = {
-  inspect: new Set(["json"]),
-  convert: new Set(["json", "output", "allow-network", "base", "force"]),
+  inspect: new Set(["json", "entry"]),
+  convert: new Set(["json", "output", "entry", "allow-network", "base", "force"]),
   verify: new Set(["json", "static-only", "no-sandbox"]),
 };
 
@@ -92,7 +96,7 @@ export async function main(argv: readonly string[], io: Io, deps: Deps = {}): Pr
   try {
     switch (command) {
       case "inspect": {
-        const report = await inspectFile(path);
+        const report = await inspectFile(path, values.entry ? { entry: values.entry } : {});
         io.stdout(values.json ? json(report) : formatReport(report));
         return report.findings.some((f) => f.severity === "error") ? EXIT.findings : EXIT.ok;
       }
@@ -124,6 +128,7 @@ function parse(argv: readonly string[]) {
     options: {
       json: { type: "boolean" },
       output: { type: "string", short: "o" },
+      entry: { type: "string" },
       "allow-network": { type: "boolean" },
       base: { type: "string" },
       force: { type: "boolean" },
@@ -138,7 +143,7 @@ function parse(argv: readonly string[]) {
 const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
 
 function defaultOutput(path: string): string {
-  const name = basename(path).replace(/\.html?$/i, "");
+  const name = basename(path).replace(/\.(html?|zip)$/i, "");
   return join(dirname(path), `${name}.fidelark.html`);
 }
 
@@ -161,6 +166,7 @@ async function convert(
   const { html, result } = await convertFile(path, basename(output), {
     allowNetwork: values["allow-network"] === true,
     ...(values.base ? { baseDir: values.base } : {}),
+    ...(values.entry ? { entry: values.entry } : {}),
     ...deps.convert,
   });
   try {

@@ -34,8 +34,8 @@ olarak dışa aktarır: **İçe aktar. İncele. Koru. Dışa aktar.**
 
 ## Bugün neler çalışıyor
 
-`fidelark inspect`, **tek bir HTML dosyasını** çalıştırmadan analiz eder ve şema sürümlü bir
-taşınabilirlik raporu üretir:
+`fidelark inspect`, **tek bir HTML dosyasını** veya bir **ZIP export'unu** çalıştırmadan analiz
+eder ve şema sürümlü bir taşınabilirlik raporu üretir:
 
 - **Bağımlılıklar:** Script, modül, stil dosyası, font, görsel, medya, frame ve çalışma anında
   yapılan ağ istekleri. Her biri satır numarasıyla birlikte uzak, göreli, gömülü veya çıplak
@@ -45,13 +45,18 @@ taşınabilirlik raporu üretir:
 - **Bulgular:** Uzak ve eksik dosyalar, ağ çağrıları, uzak formlar ve frame'ler, dinamik kod,
   yalnızca AI platformunun içinde var olan API'ler ve olası gizli anahtarlar (her zaman
   maskelenmiş olarak).
+- **ZIP export'ları:** Bellekte okunur, diske asla açılmaz. Analiz edilen sayfa `index.html`
+  (yoksa tek HTML dosyası ya da `--entry`) olur; arşivdeki stil dosyaları, script'ler ve modül
+  grafları da izlenip analiz edilir. Güvensiz girdiler (arşivin dışına çıkan veya mutlak yollar,
+  sembolik bağlantılar), ZIP bombaları ve bozuk girdiler reddedilip raporlanır.
 
-`fidelark convert`, bir HTML dosyasını script, stil, font, görsel ve medya dosyalarıyla birlikte
-içinde köken manifest'i bulunan **tek ve kendi kendine yeten bir HTML dosyasına** dönüştürür.
+`fidelark convert`, bir HTML dosyasını veya bir ZIP export'undaki sayfayı script, stil, font,
+görsel ve medya dosyalarıyla birlikte içinde köken manifest'i bulunan **tek ve kendi kendine
+yeten bir HTML dosyasına** dönüştürür.
 `fidelark verify`, bir dosyayı **ağ erişimi tamamen kapalı, sandbox içindeki bir tarayıcıda**
 açar; neyi yüklemeye çalıştığını ve hangi hataları verdiğini raporlar.
 
-Diğer formatlar (React/JSX kaynağı, Markdown, ZIP) tanınır ama henüz analiz edilmez ve
+Diğer formatlar (React/JSX kaynağı, Markdown) tanınır ama henüz analiz edilmez ve
 dönüştürülmez. ES modül grafları, gömülü sayfalar ve canlı ağ çağrıları dışarıda kalır;
 dönüşüm raporu bunu açıkça söyler.
 
@@ -60,8 +65,9 @@ dönüşüm raporu bunu açıkça söyler.
 - **Yerel öncelikli:** Her şey kendi bilgisayarınızda çalışır; CLI hiçbir içerik veya telemetri
   göndermez.
 - **Varsayılan olarak güvenli:** `inspect` ve `convert` girdiyi asla çalıştırmaz. `convert` yerel
-  dosyaları yalnızca girdinin klasöründen okur; yalnızca `--allow-network` verilirse ve yalnızca
-  herkese açık adreslerden indirir. `verify` dosyayı yalnızca ağı kapalı, sandbox içindeki bir
+  dosyaları yalnızca girdinin klasöründen ya da yalnızca ZIP'in içinden okur; yalnızca
+  `--allow-network` verilirse ve yalnızca herkese açık adreslerden indirir. Arşivler diske asla
+  açılmaz. `verify` dosyayı yalnızca ağı kapalı, sandbox içindeki bir
   tarayıcıda çalıştırır.
 - **Dürüst taşınabilirlik:** Fidelity yüzde olarak değil, eksen eksen ve kanıtıyla raporlanır.
 - **Deterministik:** Aynı girdi her zaman aynı raporu verir; hiçbir AI modeli kullanılmaz.
@@ -74,6 +80,7 @@ Node.js 24 ve pnpm gerekir.
 pnpm install
 pnpm fidelark inspect path/to/artifact.html
 pnpm fidelark inspect path/to/artifact.html --json
+pnpm fidelark inspect path/to/export.zip
 ```
 
 Çıkış kodları: `0` başarılı, `1` sorun bulundu (raporda hata, gömülemeyen dosya veya `verify`
@@ -86,6 +93,9 @@ sonucunun passed olmaması), `2` kullanım veya girdi hatası. JSON çıktısı
 # Yerel bağımlılıkları tek dosyaya göm (artifact.fidelark.html yazılır)
 pnpm fidelark convert path/to/artifact.html
 
+# Bir ZIP export'unu tek dosyaya çevir (birden fazla sayfa varsa --entry ile seç)
+pnpm fidelark convert path/to/export.zip
+
 # Uzak script, stil, font ve görselleri de indir (yalnızca herkese açık adresler)
 pnpm fidelark convert path/to/artifact.html --allow-network -o portable.html
 
@@ -95,7 +105,7 @@ pnpm fidelark verify portable.html
 
 `convert`, Subresource Integrity hash'lerini doğrular, `defer`/`async` davranışını korur,
 çevrimdışında yalnızca hata verecek kaynak ipuçlarını (preload, preconnect) kaldırır ve girdinin
-klasörü (veya `--base`) dışındaki dosyaları reddeder. Her çıktı, gömülen her kaynağı SHA-256
+klasörü (veya `--base`), ZIP için de arşivin dışındaki dosyaları reddeder. Her çıktı, gömülen her kaynağı SHA-256
 değeriyle ve dışarıda kalan her referansı nedeniyle listeleyen bir
 `<script type="application/json" id="fidelark-export">` manifest'i taşır.
 
@@ -161,9 +171,9 @@ Bulguları sınıflara bağlayan kurallar
 - [x] Girdi sınıflandırma, boyut limitleri ve şema sürümlü raporlar
 - [x] Tek HTML dosyaları için statik analiz ve fidelity değerlendirmesi
 - [x] Otomatik çevrimdışı doğrulamalı bağımsız HTML export
+- [x] ZIP export incelemesi ve dönüştürme
 - [ ] React/JSX artifact kaynağından çevrimdışı çalışan HTML üretme
 - [ ] ES modül graflarını paketleme
-- [ ] ZIP export incelemesi
 - [ ] Sandbox içinde yerel önizleme
 
 ## Repo yapısı
@@ -171,14 +181,14 @@ Bulguları sınıflara bağlayan kurallar
 ```text
 packages/
   schema/     sözleşmeler (Zod) ve yayınlanan JSON Schema: fidelity sınıfları, raporlar, fixture'lar
-  core/       girdi sınıflandırma, limitler, inceleme akışı
+  core/       girdi sınıflandırma, limitler, güvenli ZIP okuma, inceleme akışı
   analyzer/   statik HTML, CSS ve JavaScript analizi; fidelity kuralları
   exporter/   izin kontrollü yerel ve ağ yükleyicileriyle bağımsız HTML export
   verifier/   sandbox içindeki tarayıcıda çevrimdışı doğrulama
   cli/        `fidelark` komutu
 fixtures/     beklenen sonuçlarıyla test corpus'u (bkz. fixtures/README.md)
 apps/site/    GitHub Pages'teki tanıtım sitesi (Vite, React; raporlar fixture'lardan üretilir)
-tests/        paketler arası testler (fixture corpus'u, marka dosyası bütünlüğü, site verisi)
+tests/        paketler arası testler (fixture corpus'u, ZIP export'ları, marka dosyası bütünlüğü, site verisi)
 branding/     marka kimliği: logolar, token'lar, UI kiti, kılavuz (bkz. branding/README.md)
 docs/adr/     mimari karar kayıtları
 ```
@@ -196,7 +206,8 @@ TypeScript, Node'un yerleşik type stripping özelliğiyle doğrudan çalışır
 bkz. [ADR-008](docs/adr/0008-monorepo-ve-arac-secimi.md). Her test çalıştırmasında fixture'ların
 beklenen yetenekleri, fidelity sınıfları ve bulguları, tarayıcı varsa çevrimdışı sonuçları da
 kontrol edilir; değişiklikler regresyon olarak görünür. Export ve doğrulama kararları
-[ADR-011](docs/adr/0011-standalone-html-export-ve-cevrimdisi-dogrulama.md) içindedir.
+[ADR-011](docs/adr/0011-standalone-html-export-ve-cevrimdisi-dogrulama.md), ZIP işleme kararları
+[ADR-012](docs/adr/0012-zip-export-ve-guvenli-arsiv-okuma.md) içindedir.
 
 ## Marka
 
