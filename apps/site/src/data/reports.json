@@ -1,0 +1,92 @@
+[
+  {
+    "id": "minimal-quiz",
+    "title": "Single-question quiz with inline script and styles",
+    "fidelity": "exact-portable",
+    "glyph": "●",
+    "label": "Exact portable",
+    "dependencies": 0,
+    "findings": 1,
+    "text": "  File      minimal-quiz.html\n  Format    html\n  Size      993 B\n  SHA-256   516bf6e1e224d4e46d64a8cc32a95a08840df4fba09e6ac990c77bd61c01c174\n  Fidelity  ● Exact portable  (static analysis, not yet verified offline)\n            content     ● Exact portable\n              · 18 characters of static text are in the document.\n            visual      ● Exact portable\n              · All styles and images are inline or embedded.\n            behavioral  ● Exact portable\n              · Scripts are inline and make no network requests.\n  Needs     scripts\n  Uses      html, css, inline-script, form\n\nFindings\n  info     script.inline        Contains 1 inline script. Nothing is executed during inspection.\n  info     fidelity.unverified  Fidelity is assessed by static analysis; it is not yet verified by exporting and reopening the artifact offline.\n"
+  },
+  {
+    "id": "live-data-widget",
+    "title": "Chart widget that loads a CDN library and fetches live data",
+    "fidelity": "connected",
+    "glyph": "↗",
+    "label": "Connected",
+    "dependencies": 2,
+    "findings": 3,
+    "text": "  File      live-data-widget.html\n  Format    html\n  Size      866 B\n  SHA-256   a1a638cedcb17332b4d6eb3ad452651b661b0ffd92f23544ebc650543f8b8ded\n  Fidelity  ↗ Connected  (static analysis, not yet verified offline)\n            content     ● Exact portable\n              · 26 characters of static text are in the document.\n            visual      ● Exact portable\n              · All styles and images are inline or embedded.\n            behavioral  ↗ Connected\n              · Makes 1 network request at runtime: https://api.example.com/rates?base=EUR (fetch() line 13).\n              · 1 remote script can be bundled for offline use.\n  Needs     scripts, network\n  Uses      html, inline-script, external-script, canvas, network-fetch\n\nDependencies (2)\n  script   remote  https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js  (<script src> line 6)\n  network  remote  https://api.example.com/rates?base=EUR  (fetch() line 13)\n\nFindings\n  warning  dependency.remote    1 remote resource must be bundled for the artifact to work offline.\n                                - script: https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js\n  warning  network.runtime      Makes 1 network request at runtime; these features need a connection.\n                                - https://api.example.com/rates?base=EUR (fetch() line 13)\n  info     script.inline        Contains 1 inline script. Nothing is executed during inspection.\n  info     fidelity.unverified  Fidelity is assessed by static analysis; it is not yet verified by exporting and reopening the artifact offline.\n"
+  },
+  {
+    "id": "remote-assets",
+    "title": "Highlighted code page with a web font, remote stylesheets, a remote image and a CDN script",
+    "fidelity": "bundled-portable",
+    "glyph": "▣",
+    "label": "Bundled portable",
+    "dependencies": 4,
+    "findings": 2,
+    "text": "  File      remote-assets.html\n  Format    html\n  Size      794 B\n  SHA-256   e4167bdfe842805f116a355dd1566897df6b7622ccba316852f996f4a3bf8af8\n  Fidelity  ▣ Bundled portable  (static analysis, not yet verified offline)\n            content     ● Exact portable\n              · 54 characters of static text are in the document.\n            visual      ▣ Bundled portable\n              · 3 remote style, font or media files can be bundled for offline use.\n            behavioral  ▣ Bundled portable\n              · 1 remote script can be bundled for offline use.\n  Needs     scripts, network\n  Uses      html, css, inline-script, external-script, web-font, image\n\nDependencies (4)\n  stylesheet  remote  https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap  (<link rel=\"stylesheet\"> line 6)\n  stylesheet  remote  https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github.min.css  (<link rel=\"stylesheet\"> line 7)\n  script      remote  https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js  (<script src> line 8)\n  image       remote  https://example.com/diagrams/binary-search.png  (<img src> line 13)\n\nFindings\n  warning  dependency.remote    4 remote resources must be bundled for the artifact to work offline.\n                                - stylesheet: https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap\n                                - stylesheet: https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github.min.css\n                                - script: https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js\n                                - image: https://example.com/diagrams/binary-search.png\n  info     script.inline        Contains 1 inline script. Nothing is executed during inspection.\n  info     fidelity.unverified  Fidelity is assessed by static analysis; it is not yet verified by exporting and reopening the artifact offline.\n"
+  },
+  {
+    "id": "platform-host-api",
+    "title": "Tutor widget that calls the AI platform's in-page API (window.claude)",
+    "fidelity": "unsupported",
+    "glyph": "×",
+    "label": "Unsupported",
+    "dependencies": 0,
+    "findings": 2,
+    "text": "  File      platform-host-api.html\n  Format    html\n  Size      548 B\n  SHA-256   b9da8fc395c887d14b92babd5daaceccf6f599b5c8254f8104986d4ac21deda4\n  Fidelity  × Unsupported  (static analysis, not yet verified offline)\n            content     ● Exact portable\n              · 14 characters of static text are in the document.\n            visual      ● Exact portable\n              · All styles and images are inline or embedded.\n            behavioral  × Unsupported\n              · Uses a host-only API outside a standard browser: window.claude line 12.\n  Needs     scripts\n  Uses      html, inline-script, host-api\n\nFindings\n  info     script.inline        Contains 1 inline script. Nothing is executed during inspection.\n  warning  host.api             Depends on an API that exists only inside the AI platform that created it; this behavior cannot be carried over.\n                                - window.claude line 12\n  info     fidelity.unverified  Fidelity is assessed by static analysis; it is not yet verified by exporting and reopening the artifact offline.\n"
+  },
+  {
+    "id": "static-article",
+    "title": "Static article with inline styles, inline SVG and an embedded image",
+    "fidelity": "exact-portable",
+    "glyph": "●",
+    "label": "Exact portable",
+    "dependencies": 1,
+    "findings": 0,
+    "text": "  File      static-article.html\n  Format    html\n  Size      885 B\n  SHA-256   8f549194edf3c602e6ec3a9b9c5eb2dcc47465e8aa14680a6e54d145bbc1ef76\n  Fidelity  ● Exact portable  (static analysis, not yet verified offline)\n            content     ● Exact portable\n              · 119 characters of static text are in the document.\n            visual      ● Exact portable\n              · All styles and images are inline or embedded.\n            behavioral  ● Exact portable\n              · No scripts; the document is static.\n  Needs     nothing beyond a browser\n  Uses      html, css, image, svg\n\nDependencies (1)\n  image  embedded  data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=  (<img src> line 21)\n\nFindings\n  info     fidelity.unverified  Fidelity is assessed by static analysis; it is not yet verified by exporting and reopening the artifact offline.\n"
+  },
+  {
+    "id": "react-babel-cdn",
+    "title": "React flashcards compiled in the browser with Babel, saving progress to localStorage",
+    "fidelity": "bundled-portable",
+    "glyph": "▣",
+    "label": "Bundled portable",
+    "dependencies": 3,
+    "findings": 4,
+    "text": "  File      react-babel-cdn.html\n  Format    html\n  Size      1.2 KB\n  SHA-256   1a289040495207fa732891fba63bf6af529b74ad0de8b4775d203bb851f94827\n  Fidelity  ▣ Bundled portable  (static analysis, not yet verified offline)\n            content     ▣ Bundled portable\n              · Content is rendered by scripts, so it follows behavioral fidelity.\n            visual      ● Exact portable\n              · All styles and images are inline or embedded.\n            behavioral  ▣ Bundled portable\n              · 3 remote scripts can be bundled for offline use.\n  Needs     scripts, network, storage\n  Uses      html, inline-script, external-script, storage\n\nDependencies (3)\n  script  remote  https://unpkg.com/react@18.3.1/umd/react.production.min.js  (<script src> line 6)\n  script  remote  https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js  (<script src> line 7)\n  script  remote  https://unpkg.com/@babel/standalone@7.26.4/babel.min.js  (<script src> line 8)\n\nFindings\n  warning  dependency.remote    3 remote resources must be bundled for the artifact to work offline.\n                                - script: https://unpkg.com/react@18.3.1/umd/react.production.min.js\n                                - script: https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js\n                                - script: https://unpkg.com/@babel/standalone@7.26.4/babel.min.js\n  info     script.inline        Contains 1 inline script. Nothing is executed during inspection.\n  info     script.unparsed      1 script could not be parsed as JavaScript (for example JSX compiled in the browser); simpler rules were used.\n                                - <script type=\"text/babel\"> line 12\n  info     storage.persistent   Uses browser storage; saved state stays in the browser, not in the file.\n                                - storage line 18\n                                - storage line 24\n  info     fidelity.unverified  Fidelity is assessed by static analysis; it is not yet verified by exporting and reopening the artifact offline.\n"
+  },
+  {
+    "id": "missing-local-files",
+    "title": "Single HTML file that references local CSS, JS and image files it does not contain",
+    "fidelity": "static-fallback",
+    "glyph": "◧",
+    "label": "Static fallback",
+    "dependencies": 3,
+    "findings": 1,
+    "text": "  File      missing-local-files.html\n  Format    html\n  Size      322 B\n  SHA-256   00da859b4c67b2d192969da6d743fc01135953403f3da909e4654796f861fc10\n  Fidelity  ◧ Static fallback  (static analysis, not yet verified offline)\n            content     ● Exact portable\n              · 18 characters of static text are in the document.\n            visual      ≈ Semantic equivalent\n              · 2 local style or media files are not included in this file: styles.css, images/revenue.png.\n            behavioral  ◧ Static fallback\n              · 1 script cannot be resolved from this file: app.js.\n  Needs     scripts\n  Uses      html, css, external-script, image\n\nDependencies (3)\n  stylesheet  relative  styles.css  (<link rel=\"stylesheet\"> line 6)\n  script      relative  app.js  (<script src> line 7)\n  image       relative  images/revenue.png  (<img src> line 11)\n\nFindings\n  warning  dependency.missing   3 local files referenced but not included in this single file. Inspect the ZIP export to include them.\n                                - stylesheet: styles.css\n                                - script: app.js\n                                - image: images/revenue.png\n  info     fidelity.unverified  Fidelity is assessed by static analysis; it is not yet verified by exporting and reopening the artifact offline.\n"
+  },
+  {
+    "id": "form-exfiltration",
+    "title": "Page that posts form data and cookies to a remote host, redirects itself and embeds a remote frame",
+    "fidelity": "connected",
+    "glyph": "↗",
+    "label": "Connected",
+    "dependencies": 1,
+    "findings": 5,
+    "text": "  File      form-exfiltration.html\n  Format    html\n  Size      615 B\n  SHA-256   19630bb072611ed8256fdd2189930068fe3f0ef9a2b297030a54146f0049f7a2\n  Fidelity  ↗ Connected  (static analysis, not yet verified offline)\n            content     ● Exact portable\n              · 24 characters of static text are in the document.\n            visual      ↗ Connected\n              · 1 embedded remote page needs a connection: https://ads.example.net/frame.\n            behavioral  ↗ Connected\n              · Submits a form to a remote address: <form action=\"https://collect.example.net/submit\"> line 10.\n              · Embedded remote pages need a connection.\n  Needs     scripts, network, storage\n  Uses      html, inline-script, form, iframe, storage\n\nDependencies (1)\n  frame  remote  https://ads.example.net/frame  (<iframe> line 16)\n\nFindings\n  warning  html.remote-frame    Embeds 1 remote page; they will not load offline.\n                                - https://ads.example.net/frame\n  warning  html.remote-form     A form sends data to a remote address when submitted.\n                                - <form action=\"https://collect.example.net/submit\"> line 10\n  warning  html.meta-refresh    The page redirects or reloads itself automatically.\n                                - <meta http-equiv=\"refresh\" content=\"30; url=https://tracker.example.net/next\"> line 5\n  info     script.inline        Contains 1 event handler attribute, 1 javascript: URL. Nothing is executed during inspection.\n  info     storage.persistent   Uses browser storage; saved state stays in the browser, not in the file.\n                                - document.cookie line 13\n  info     fidelity.unverified  Fidelity is assessed by static analysis; it is not yet verified by exporting and reopening the artifact offline.\n"
+  },
+  {
+    "id": "module-bare-import",
+    "title": "Module script importing packages by bare name without an import map",
+    "fidelity": "static-fallback",
+    "glyph": "◧",
+    "label": "Static fallback",
+    "dependencies": 2,
+    "findings": 2,
+    "text": "  File      module-bare-import.html\n  Format    html\n  Size      463 B\n  SHA-256   764d472ee6655a2d888e2da1e5440ced38d16553f0c9841ff2171ccee83081fa\n  Fidelity  ◧ Static fallback  (static analysis, not yet verified offline)\n            content     ◧ Static fallback\n              · Content is rendered by scripts, so it follows behavioral fidelity.\n            visual      ● Exact portable\n              · All styles and images are inline or embedded.\n            behavioral  ◧ Static fallback\n              · 2 scripts cannot be resolved from this file: preact, preact/hooks.\n  Needs     scripts\n  Uses      html, inline-script, module-script\n\nDependencies (2)\n  module  bare  preact  (import line 7)\n  module  bare  preact/hooks  (import line 8)\n\nFindings\n  warning  dependency.bare-import  2 modules imported by name without an import map; browsers cannot load them as written.\n                                   - preact\n                                   - preact/hooks\n  info     script.inline           Contains 1 inline script. Nothing is executed during inspection.\n  info     fidelity.unverified     Fidelity is assessed by static analysis; it is not yet verified by exporting and reopening the artifact offline.\n"
+  }
+]

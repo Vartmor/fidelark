@@ -10,11 +10,15 @@
   "scripts": {
     "lint": "biome check .",
     "format": "biome check --write .",
-    "typecheck": "tsc",
+    "typecheck": "tsc && pnpm --filter @fidelark/site typecheck",
     "test": "vitest run",
-    "check": "pnpm lint && pnpm typecheck && pnpm test",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm site:build",
     "schema:emit": "node packages/schema/scripts/emit-json-schema.ts",
-    "fidelark": "node packages/cli/src/bin.ts"
+    "fidelark": "node packages/cli/src/bin.ts",
+    "site:dev": "pnpm --filter @fidelark/site dev",
+    "site:build": "pnpm --filter @fidelark/site build",
+    "site:preview": "pnpm --filter @fidelark/site preview",
+    "site:data": "node apps/site/scripts/generate-reports.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.7",

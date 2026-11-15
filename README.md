@@ -7,7 +7,7 @@
 
 <p align="center"><strong>Your work. Beyond the chat.</strong></p>
 
-<p align="center">English · <a href="README.tr.md">Türkçe</a></p>
+<p align="center">English · <a href="README.tr.md">Türkçe</a> · <a href="https://vartmor.github.io/fidelark/">Website</a></p>
 
 > [!IMPORTANT]
 > **Fidelark is under active development (pre-alpha).** The CLI, the report format and the
@@ -169,7 +169,8 @@ packages/
   verifier/   offline verification in a sandboxed browser
   cli/        the `fidelark` command
 fixtures/     test corpus with expected results (see fixtures/README.md)
-tests/        cross-package tests (fixture corpus, brand asset integrity)
+apps/site/    promo website on GitHub Pages (Vite, React; reports generated from fixtures)
+tests/        cross-package tests (fixture corpus, brand asset integrity, site data)
 branding/     brand identity: logos, tokens, UI kit, guidelines (see branding/README.md)
 docs/adr/     architecture decision records
 ```
@@ -177,9 +178,11 @@ docs/adr/     architecture decision records
 ## Development
 
 ```bash
-pnpm check         # lint + typecheck + test
+pnpm check         # lint + typecheck + test + site build
 pnpm format        # apply formatting and safe lint fixes
 pnpm schema:emit   # regenerate JSON Schema after changing packages/schema
+pnpm site:dev      # run the website locally
+pnpm site:data     # regenerate the website's reports after changing fixtures or rules
 ```
 
 TypeScript runs directly on Node's built-in type stripping, so there is no build step;

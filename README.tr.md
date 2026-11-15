@@ -7,7 +7,7 @@
 
 <p align="center"><strong>Ürettiklerin, sohbetin ötesinde.</strong></p>
 
-<p align="center"><a href="README.md">English</a> · Türkçe</p>
+<p align="center"><a href="README.md">English</a> · Türkçe · <a href="https://vartmor.github.io/fidelark/">Web sitesi</a></p>
 
 > [!IMPORTANT]
 > **Fidelark aktif geliştirme aşamasında (pre-alpha).** CLI, rapor formatı ve API'ler haber
@@ -177,7 +177,8 @@ packages/
   verifier/   sandbox içindeki tarayıcıda çevrimdışı doğrulama
   cli/        `fidelark` komutu
 fixtures/     beklenen sonuçlarıyla test corpus'u (bkz. fixtures/README.md)
-tests/        paketler arası testler (fixture corpus'u, marka dosyası bütünlüğü)
+apps/site/    GitHub Pages'teki tanıtım sitesi (Vite, React; raporlar fixture'lardan üretilir)
+tests/        paketler arası testler (fixture corpus'u, marka dosyası bütünlüğü, site verisi)
 branding/     marka kimliği: logolar, token'lar, UI kiti, kılavuz (bkz. branding/README.md)
 docs/adr/     mimari karar kayıtları
 ```
@@ -185,9 +186,11 @@ docs/adr/     mimari karar kayıtları
 ## Geliştirme
 
 ```bash
-pnpm check         # lint + tip kontrolü + test
+pnpm check         # lint + tip kontrolü + test + site derlemesi
 pnpm format        # biçimlendirme ve güvenli lint düzeltmeleri
 pnpm schema:emit   # packages/schema değiştikten sonra JSON Schema'yı yeniden üret
+pnpm site:dev      # web sitesini yerelde çalıştır
+pnpm site:data     # fixture veya kurallar değişince sitedeki raporları yeniden üret
 ```
 
 TypeScript, Node'un yerleşik type stripping özelliğiyle doğrudan çalışır, derleme adımı yoktur;
