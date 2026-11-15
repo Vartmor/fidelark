@@ -27,7 +27,9 @@ kapasite sınırlı (§7), bu yüzden araç zinciri olabildiğince az parça iç
 - **Lint ve format:** Biome (tek araç, tek yapılandırma).
 - **Test:** Vitest.
 - **Kontroller yerelde:** `pnpm check` (lint, tip kontrolü, testler) commit ve push öncesinde
-  yerelde çalıştırılır. Proje kuralı olarak GitHub Actions veya başka barındırılan CI kullanılmaz.
+  yerelde çalıştırılır. Proje kuralı olarak GitHub Actions veya başka barındırılan CI ile test
+  çalıştırılmaz. Tek istisna `.github/workflows/pages.yml`: yalnızca tanıtım sitesini derleyip
+  GitHub Pages'e yayınlar, test veya kontrol çalıştırmaz.
 
 ## Alternatifler
 

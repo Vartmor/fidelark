@@ -14,3 +14,8 @@ updates:
         dependency-type: development
       runtime:
         dependency-type: production
+  # Keeps the pinned action SHAs in the Pages workflow current.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
