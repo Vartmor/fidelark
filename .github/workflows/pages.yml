@@ -8,6 +8,9 @@ on:
     paths:
       - apps/site/**
       - branding/**
+      # The scanner belt shows the engine's real output for the fixtures.
+      - fixtures/**
+      - packages/**
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml

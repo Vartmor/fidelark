@@ -181,8 +181,7 @@ docs/adr/     architecture decision records
 pnpm check         # lint + typecheck + test + site build
 pnpm format        # apply formatting and safe lint fixes
 pnpm schema:emit   # regenerate JSON Schema after changing packages/schema
-pnpm site:dev      # run the website locally
-pnpm site:data     # regenerate the website's reports after changing fixtures or rules
+pnpm site:dev      # run the website locally (its reports are built from fixtures/)
 ```
 
 TypeScript runs directly on Node's built-in type stripping, so there is no build step;

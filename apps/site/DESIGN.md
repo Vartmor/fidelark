@@ -73,5 +73,6 @@ be dragged). The belt runs only while visible and has a pause control.
 ## Honesty
 
 No invented numbers, logos or testimonials. Reports on the belt are real `fidelark inspect`
-output for the repository's fixtures (`pnpm site:data`). The project is pre-alpha and the page
+output for the repository's fixtures, computed on every build (`virtual:site-reports` in
+`vite.config.ts`), so they cannot go stale. The project is pre-alpha and the page
 says so in the Status section.

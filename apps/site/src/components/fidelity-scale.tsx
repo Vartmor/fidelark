@@ -1,6 +1,6 @@
+import reports from "virtual:site-reports";
 import { m, useReducedMotion } from "framer-motion";
 import { MaskedTextReveal } from "@/components/ui/text-reveal-mask";
-import reports from "@/data/reports.json";
 import { EASE_OUT } from "@/lib/motion";
 import { FIDELITY, FIXTURE_NAMES } from "@/lib/site";
 

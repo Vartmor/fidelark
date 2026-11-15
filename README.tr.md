@@ -189,8 +189,7 @@ docs/adr/     mimari karar kayıtları
 pnpm check         # lint + tip kontrolü + test + site derlemesi
 pnpm format        # biçimlendirme ve güvenli lint düzeltmeleri
 pnpm schema:emit   # packages/schema değiştikten sonra JSON Schema'yı yeniden üret
-pnpm site:dev      # web sitesini yerelde çalıştır
-pnpm site:data     # fixture veya kurallar değişince sitedeki raporları yeniden üret
+pnpm site:dev      # web sitesini yerelde çalıştır (raporları fixtures/ üzerinden üretilir)
 ```
 
 TypeScript, Node'un yerleşik type stripping özelliğiyle doğrudan çalışır, derleme adımı yoktur;

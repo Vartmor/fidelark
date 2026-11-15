@@ -1,8 +1,8 @@
+import reports from "virtual:site-reports";
 import { useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { MaskedTextReveal } from "@/components/ui/text-reveal-mask";
-import reports from "@/data/reports.json";
 import { ARTIFACTS } from "./artifact-cards";
 
 /** Distance from the belt's top to the cards; room for the counter above the line. */

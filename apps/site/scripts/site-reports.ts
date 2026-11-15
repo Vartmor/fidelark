@@ -5,7 +5,8 @@ import { inspectBytes } from "@fidelark/core";
 import { FIDELITY_DISPLAY, FixtureManifest } from "@fidelark/schema";
 import { formatReport } from "../../../packages/cli/src/format.ts";
 
-const FIXTURES = fileURLToPath(new URL("../../../fixtures/", import.meta.url));
+/** The repository fixtures the belt shows; the site plugin watches this folder in dev. */
+export const FIXTURES = fileURLToPath(new URL("../../../fixtures/", import.meta.url));
 
 /** Belt order: alternates outcomes so neighbouring cards tell different stories. */
 export const BELT_ORDER = [
