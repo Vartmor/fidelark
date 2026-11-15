@@ -4,7 +4,7 @@
  * "Floating Glassmorphic Navbar with Morphing Pill Indicator" by themeocean
  * (https://21st.dev/@themeocean); its scroll listener was replaced with IntersectionObservers.
  */
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { useEffect, useId, useRef, useState } from "react";
 import { ActionLink } from "@/components/ui/action-link";
 import { appear, EASE_OUT } from "@/lib/motion";
@@ -88,24 +88,21 @@ export function SiteHeader() {
       )}
     >
       <div className="mx-auto grid h-16 max-w-[1440px] grid-cols-[1fr_auto_auto] items-center gap-2 px-4 sm:px-6 lg:grid-cols-[1fr_auto_1fr] lg:px-10">
-        <motion.a
+        <m.a
           href="#top"
           aria-label="Fidelark home"
           className="relative z-[80] justify-self-start rounded-[10px] focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-signal-deep"
           {...appear("scale", 0.08, reduce)}
         >
           <img src={lockupInk} alt="" width={101} height={29} className="h-7 w-auto" />
-        </motion.a>
+        </m.a>
 
         <nav aria-label="Primary" className="hidden lg:block">
           <ul className="flex items-center gap-1 rounded-[12px] border border-border-strong/30 bg-white/55 p-1 shadow-[inset_0_1px_0_#fff] backdrop-blur-md">
             {NAV_ITEMS.map((item, i) => {
               const isOn = highlighted === item.href;
               return (
-                <motion.li
-                  key={item.href}
-                  {...appear(NAV_KINDS[i] ?? "soft", 0.16 + i * 0.12, reduce)}
-                >
+                <m.li key={item.href} {...appear(NAV_KINDS[i] ?? "soft", 0.16 + i * 0.12, reduce)}>
                   <a
                     href={item.href}
                     aria-current={active === item.href ? "location" : undefined}
@@ -119,7 +116,7 @@ export function SiteHeader() {
                     )}
                   >
                     {isOn && (
-                      <motion.span
+                      <m.span
                         layoutId={`pill-${pillId}`}
                         aria-hidden="true"
                         transition={reduce ? { duration: 0 } : SPRING}
@@ -128,7 +125,7 @@ export function SiteHeader() {
                     )}
                     {item.label}
                   </a>
-                </motion.li>
+                </m.li>
               );
             })}
           </ul>
@@ -142,7 +139,7 @@ export function SiteHeader() {
           Get the CLI
         </ActionLink>
 
-        <motion.button
+        <m.button
           ref={toggleRef}
           type="button"
           onClick={() => setOpen((o) => !o)}
@@ -172,12 +169,12 @@ export function SiteHeader() {
               )}
             />
           </span>
-        </motion.button>
+        </m.button>
       </div>
 
       <AnimatePresence>
         {open && (
-          <motion.div
+          <m.div
             id={menuId}
             className="fixed inset-0 z-[70] flex flex-col bg-paper/75 px-5 pt-[max(6rem,calc(env(safe-area-inset-top)+5.5rem))] pb-8 backdrop-blur-2xl lg:hidden"
             initial={{ opacity: 0 }}
@@ -188,7 +185,7 @@ export function SiteHeader() {
             <nav aria-label="Primary">
               <ul className="flex flex-col gap-2">
                 {NAV_ITEMS.map((item, i) => (
-                  <motion.li
+                  <m.li
                     key={item.href}
                     initial={reduce ? false : { opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -202,7 +199,7 @@ export function SiteHeader() {
                     >
                       {item.label}
                     </a>
-                  </motion.li>
+                  </m.li>
                 ))}
               </ul>
             </nav>
@@ -213,7 +210,7 @@ export function SiteHeader() {
             >
               Get the CLI
             </ActionLink>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </header>

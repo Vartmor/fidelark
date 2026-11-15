@@ -1,4 +1,4 @@
-import { motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
+import { m, useReducedMotion, useScroll, useSpring } from "framer-motion";
 import { useLayoutEffect, useRef, useState } from "react";
 import { Command } from "@/components/ui/command";
 import { MaskedTextReveal } from "@/components/ui/text-reveal-mask";
@@ -87,7 +87,7 @@ export function HowItWorks() {
               className="pointer-events-none absolute top-0 left-0 hidden overflow-visible lg:block"
             >
               <path d={path} fill="none" stroke="var(--f-line)" strokeWidth="2" />
-              <motion.path
+              <m.path
                 d={path}
                 fill="none"
                 stroke="var(--f-signal)"
@@ -102,7 +102,7 @@ export function HowItWorks() {
             className="relative grid gap-12 border-l border-line pl-6 lg:grid-cols-3 lg:gap-10 lg:border-l-0 lg:pl-0"
           >
             {STEPS.map((step, i) => (
-              <motion.li
+              <m.li
                 key={step.verb}
                 className="relative lg:pt-[calc(var(--step)*126px+56px)]"
                 style={{ "--step": i } as React.CSSProperties}
@@ -119,7 +119,7 @@ export function HowItWorks() {
                   {step.text}
                 </p>
                 <Command className="mt-5 max-w-[26rem]">{step.command}</Command>
-              </motion.li>
+              </m.li>
             ))}
           </ol>
         </div>

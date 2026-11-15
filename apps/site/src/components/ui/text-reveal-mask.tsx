@@ -4,7 +4,7 @@
  * (https://21st.dev/@soralabs/components/text-reveal-mask): imports switched to framer-motion,
  * split modes reduced to lines, emphasis kept as <strong>.
  */
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { m, useInView, useReducedMotion } from "framer-motion";
 import {
   type ElementType,
   isValidElement,
@@ -140,14 +140,14 @@ export function MaskedTextReveal({
             aria-hidden="true"
             className="block overflow-hidden pb-[0.08em]"
           >
-            <motion.span
+            <m.span
               className="block"
               initial={{ y: "110%" }}
               animate={inView && lines ? { y: "0%" } : { y: "110%" }}
               transition={{ duration, delay: delay + lineIndex * stagger, ease: EASE_OUT }}
             >
               {line.map(renderWord)}
-            </motion.span>
+            </m.span>
           </span>
         ))}
       </Tag>

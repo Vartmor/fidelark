@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { HardDrive, ListChecks, ShieldCheck } from "lucide-react";
 import { FoldMark } from "@/components/fold-mark";
 import { ActionLink } from "@/components/ui/action-link";
@@ -43,13 +43,13 @@ export function Hero() {
             delay={0.2}
             className="absolute -top-[30vw] right-[-26vw] -z-10 size-[62vw] sm:hidden"
           />
-          <motion.p
+          <m.p
             className="mb-6 inline-flex items-center gap-2 rounded-[10px] border border-border-strong/40 bg-white/65 px-3 py-2 text-[0.8125rem] font-medium tracking-[-0.01em] text-ink backdrop-blur-md"
             {...appear("pop", 0.22, reduce, 0.9)}
           >
             <FoldMark split={false} className="size-4 text-ink" />
             Open-source CLI for AI artifacts
-          </motion.p>
+          </m.p>
 
           <h1
             id="hero-title"
@@ -57,23 +57,23 @@ export function Hero() {
           >
             {["Your work.", "Beyond the chat."].map((line, i) => (
               <span key={line} className="block overflow-hidden pb-[0.06em]">
-                <motion.span
+                <m.span
                   className={i === 1 ? "block text-slate" : "block"}
                   {...appear("mask", 0.42 + i * 0.2, reduce)}
                 >
                   {line}
-                </motion.span>
+                </m.span>
               </span>
             ))}
           </h1>
 
-          <motion.p
+          <m.p
             className="mt-6 max-w-[34rem] text-[clamp(1.0625rem,0.95rem+0.35vw,1.25rem)] leading-[1.55] tracking-[-0.015em] text-slate"
             {...appear("soft", 0.82, reduce, 1.25)}
           >
             Fidelark inspects pages made by AI, packs what they depend on, and checks they still
             open offline.
-          </motion.p>
+          </m.p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3 max-[420px]:flex-col max-[420px]:items-stretch">
             <ActionLink
@@ -97,7 +97,7 @@ export function Hero() {
 
       <ul className="mx-auto grid w-full max-w-[1440px] gap-4 border-t border-line px-4 py-5 sm:grid-cols-3 sm:gap-6 sm:px-6 lg:px-10">
         {FACTS.map(({ icon: Icon, text }, i) => (
-          <motion.li
+          <m.li
             key={text}
             className="flex items-center gap-3 text-[0.9375rem] tracking-[-0.015em] text-ink/85"
             {...appear("stat", 1.12 + i * 0.16, reduce)}
@@ -106,7 +106,7 @@ export function Hero() {
               <Icon aria-hidden="true" className="size-[1.125rem]" strokeWidth={1.75} />
             </span>
             {text}
-          </motion.li>
+          </m.li>
         ))}
       </ul>
     </section>

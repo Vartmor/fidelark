@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { HardDrive, ShieldCheck } from "lucide-react";
 import { FoldMark } from "@/components/fold-mark";
 import { MaskedTextReveal } from "@/components/ui/text-reveal-mask";
@@ -34,7 +34,7 @@ export function Principles() {
         </MaskedTextReveal>
 
         <div className="mt-14 grid gap-4 lg:grid-cols-6">
-          <motion.article className={`${cell} bg-surface-dark lg:col-span-4`} {...reveal(reduce)}>
+          <m.article className={`${cell} bg-surface-dark lg:col-span-4`} {...reveal(reduce)}>
             <img
               src={gateFieldDark}
               alt=""
@@ -49,9 +49,9 @@ export function Principles() {
                 are fetched only when you allow it, and only from public addresses.
               </p>
             </div>
-          </motion.article>
+          </m.article>
 
-          <motion.article
+          <m.article
             className={`${cell} border border-surface-dark bg-ink lg:col-span-2`}
             {...reveal(reduce, 0.06)}
           >
@@ -61,12 +61,9 @@ export function Principles() {
               Inspection never executes the file. Verification runs it in a sandbox with the network
               cut.
             </p>
-          </motion.article>
+          </m.article>
 
-          <motion.article
-            className={`${cell} bg-mint text-ink lg:col-span-2`}
-            {...reveal(reduce, 0.12)}
-          >
+          <m.article className={`${cell} bg-mint text-ink lg:col-span-2`} {...reveal(reduce, 0.12)}>
             <h3 className="text-[1.5rem] font-semibold tracking-[-0.03em]">Honest portability</h3>
             <p className="mt-3 leading-[1.6] text-ink/80">
               Three axes, each with its own class and the line that decided it.
@@ -88,9 +85,9 @@ export function Principles() {
                 );
               })}
             </ul>
-          </motion.article>
+          </m.article>
 
-          <motion.article
+          <m.article
             className={`${cell} border border-surface-dark bg-ink lg:col-span-4`}
             {...reveal(reduce, 0.18)}
           >
@@ -111,7 +108,7 @@ export function Principles() {
   "skipped": [{ "kind": "network", "failed": false }] }`}
               </pre>
             </div>
-          </motion.article>
+          </m.article>
         </div>
       </div>
     </section>

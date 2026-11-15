@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { MaskedTextReveal } from "@/components/ui/text-reveal-mask";
 import reports from "@/data/reports.json";
 import { EASE_OUT } from "@/lib/motion";
@@ -43,7 +43,7 @@ export function FidelityScale() {
             {FIDELITY.map((f, i) => {
               const examples = examplesFor(f.id);
               return (
-                <motion.li
+                <m.li
                   key={f.id}
                   className="group relative flex flex-col gap-3 border-b border-line py-6 transition-colors duration-200 hover:bg-white lg:border-b-0 lg:border-l lg:px-5 lg:first:border-l-0 lg:first:pl-0"
                   initial={reduce ? false : { opacity: 0, y: 16 }}
@@ -61,7 +61,7 @@ export function FidelityScale() {
                       ? `In our fixtures: ${examples.join(", ")}`
                       : "No fixture lands here yet"}
                   </p>
-                </motion.li>
+                </m.li>
               );
             })}
           </ol>

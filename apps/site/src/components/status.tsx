@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { Check, CircleDashed } from "lucide-react";
 import { MaskedTextReveal } from "@/components/ui/text-reveal-mask";
 import { reveal } from "@/lib/motion";
@@ -53,7 +53,7 @@ export function Status() {
             { title: "Works today", items: TODAY, done: true },
             { title: "Next", items: NEXT, done: false },
           ].map((group, g) => (
-            <motion.div key={group.title} {...reveal(reduce, g * 0.08)}>
+            <m.div key={group.title} {...reveal(reduce, g * 0.08)}>
               <h3 className="border-b border-ink/80 pb-3 text-[1.0625rem] font-semibold tracking-[-0.02em] text-ink">
                 {group.title}
               </h3>
@@ -77,7 +77,7 @@ export function Status() {
                   </li>
                 ))}
               </ul>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>

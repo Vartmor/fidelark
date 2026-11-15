@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { siGithub } from "simple-icons";
 import { FoldMark } from "@/components/fold-mark";
 import { ActionLink } from "@/components/ui/action-link";
@@ -40,7 +40,7 @@ export function Closing() {
           </div>
         </div>
 
-        <motion.div
+        <m.div
           className="rounded-[24px] border border-line bg-white/70 p-6 backdrop-blur-md sm:p-8"
           {...reveal(reduce, 0.1)}
         >
@@ -55,7 +55,7 @@ export function Closing() {
             <Command>pnpm install</Command>
             <Command>pnpm fidelark inspect path/to/artifact.html</Command>
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   );

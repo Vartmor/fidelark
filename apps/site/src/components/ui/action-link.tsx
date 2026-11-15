@@ -1,9 +1,9 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import type { ComponentProps, ReactNode } from "react";
 import { type AppearKind, appear } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-type Props = Omit<ComponentProps<typeof motion.a>, "children"> & {
+type Props = Omit<ComponentProps<typeof m.a>, "children"> & {
   variant?: "solid" | "glass";
   children: ReactNode;
   /** Optional hero-entrance timing. */
@@ -22,7 +22,7 @@ export function ActionLink({
   const reduce = useReducedMotion();
   const external = typeof href === "string" && /^https?:/.test(href);
   return (
-    <motion.a
+    <m.a
       href={href}
       {...(external ? { rel: "noopener noreferrer" } : {})}
       className={cn("btn", variant === "solid" ? "btn-solid" : "btn-glass", className)}
@@ -30,6 +30,6 @@ export function ActionLink({
       {...rest}
     >
       {children}
-    </motion.a>
+    </m.a>
   );
 }

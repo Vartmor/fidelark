@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { EASE_OUT } from "@/lib/motion";
 
 // Master geometry from branding/assets/logo/svg (120 x 120). Do not redraw or adjust.
@@ -27,13 +27,13 @@ export function FoldMark({ className, split = true, animate = false, delay = 0 }
       : {};
   return (
     <svg viewBox="0 0 120 120" className={className} aria-hidden="true" focusable="false">
-      <motion.path
+      <m.path
         d={LEFT}
         fill={split ? "var(--f-mint)" : "currentColor"}
         fillRule="evenodd"
         {...half({ x: -14, y: -14 })}
       />
-      <motion.path
+      <m.path
         d={RIGHT}
         fill={split ? "var(--f-signal)" : "currentColor"}
         fillRule="evenodd"
