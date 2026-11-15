@@ -111,8 +111,11 @@ değeriyle ve dışarıda kalan her referansı nedeniyle listeleyen bir
 
 `verify` için Chrome, Chromium veya Edge gerekir (farklı bir yol için `FIDELARK_BROWSER`).
 Sonuç **passed** (engellenen istek ve hata yok), **partial** (açılıyor ama bir şey engelleniyor,
-hata veriyor veya bağlantı gerektiriyor) ya da **failed** (yüklenmiyor veya boş kalıp hata
-veriyor) olur. Yalnızca sayfayı açar; tıklama veya yazma yapmaz.
+hata veriyor veya bağlantı gerektiriyor) ya da **failed** (yüklenmiyor, boş kalıp hata veriyor,
+dosyadan ayrılıyor veya yanıt vermiyor) olur. Yalnızca sayfayı açar; tıklama veya yazma yapmaz.
+İstek engellemenin altında tarayıcının kendisi de hiçbir yere ulaşamaz: proxy'si yerel bir çıkmaz
+sokaktır, alan adı çözümlemez ve WebRTC UDP gönderemez
+([tehdit modeli](docs/adr/0002-guvenilmeyen-girdi-tehdit-modeli-ve-sandbox.md)).
 
 ## Örnek rapor
 

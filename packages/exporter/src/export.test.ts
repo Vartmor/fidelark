@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { LoadError } from "./errors.ts";
 import { exportStandaloneHtml, MANIFEST_ID } from "./export.ts";
 import type { Loader } from "./loader.ts";
+import { spliceAll } from "./splice.ts";
 
 const DOC = new URL("file:///site/index.html");
 const enc = new TextEncoder();
@@ -47,6 +48,29 @@ const manifestOf = (html: string) => {
   ).exec(html)?.[1];
   return ExportManifest.parse(JSON.parse(json ?? "null"));
 };
+
+describe("spliceAll", () => {
+  it("applies edits in one pass, insertions before replacements at the same offset", () => {
+    expect(
+      spliceAll("abcdef", [
+        { start: 4, end: 6, text: "EF" },
+        { start: 1, end: 1, text: "+" },
+        { start: 1, end: 3, text: "BC" },
+      ]),
+    ).toBe("a+BCdEF");
+  });
+});
+
+describe("exportStandaloneHtml on hostile input", () => {
+  it("handles deep nesting and many references in linear time", async () => {
+    const urls = Array.from({ length: 20_000 }, (_, i) => `.c${i}{background:url(data:,${i})}`);
+    const html = `<!doctype html><style>${"url(a".repeat(100_000)}${urls.join("")}</style>${"<div>".repeat(100_000)}<img src="x.png">`;
+    const started = performance.now();
+    const { manifest } = await run(html, { "file:///site/x.png": ["image/png", "png"] });
+    expect(performance.now() - started).toBeLessThan(5_000);
+    expect(manifest.bundled.map((b) => b.specifier)).toEqual(["x.png"]);
+  });
+});
 
 describe("exportStandaloneHtml", () => {
   it("inlines classic scripts and escapes closing tags", async () => {

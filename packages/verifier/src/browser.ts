@@ -1,5 +1,6 @@
 import { constants } from "node:fs";
 import { access } from "node:fs/promises";
+import { createServer, type Socket } from "node:net";
 import { redactSecrets } from "@fidelark/analyzer";
 import type { BrowserCheck } from "@fidelark/schema";
 
@@ -61,15 +62,86 @@ const clean = (text: string) => {
 const unique = (items: string[]) => [...new Set(items)];
 
 /**
+ * A local dead end that Chromium must use as its proxy. Request routing (below) blocks what
+ * pages request, but some traffic never passes through it: speculative prefetch and prerender,
+ * and the connections Chromium opens ahead of a navigation. Through the proxy, all of that ends
+ * here. Nothing is forwarded; the target of each proxied request is recorded as blocked.
+ */
+async function startSink(record: (target: string) => void) {
+  const sockets = new Set<Socket>();
+  const server = createServer((socket) => {
+    sockets.add(socket);
+    socket.on("close", () => sockets.delete(socket));
+    socket.on("error", () => {});
+    socket.setTimeout(2_000, () => socket.destroy());
+    socket.once("data", (chunk: Buffer) => {
+      const line = chunk.subarray(0, 2048).toString("latin1").split("\r\n")[0] ?? "";
+      const request = /^([A-Z]+) (\S+) HTTP\/\d/.exec(line);
+      if (request?.[2]) {
+        record(
+          request[1] === "CONNECT" ? `https://${request[2].replace(/:443$/, "")}` : request[2],
+        );
+      }
+      socket.destroy();
+    });
+  });
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => resolve());
+  });
+  const address = server.address();
+  const port = typeof address === "object" && address !== null ? address.port : 0;
+  return {
+    port,
+    close: () =>
+      new Promise<void>((resolve) => {
+        for (const socket of sockets) socket.destroy();
+        server.close(() => resolve());
+      }),
+  };
+}
+
+/** Isolation flags for the browser process; see docs/adr/0002. */
+export function isolationArgs(proxyPort: number): string[] {
+  return [
+    `--proxy-server=http://127.0.0.1:${proxyPort}`,
+    // Chromium sends loopback addresses past the proxy unless told otherwise.
+    "--proxy-bypass-list=<-loopback>",
+    // No hostname is ever resolved: a DNS lookup can carry data even when the request is blocked.
+    "--host-resolver-rules=MAP * ~NOTFOUND , EXCLUDE 127.0.0.1",
+    // WebRTC may only use the proxy, so no UDP leaves the machine.
+    "--force-webrtc-ip-handling-policy=disable_non_proxied_udp",
+  ];
+}
+
+/** Resolves to `fallback` if `promise` takes longer than `ms`; used where a page can stall. */
+function within<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
+  const late = new Promise<T>((resolve) => {
+    timer = setTimeout(() => resolve(fallback), ms);
+  });
+  promise.catch(() => {});
+  return Promise.race([promise, late]).finally(() => clearTimeout(timer));
+}
+
+/**
  * Opens a local HTML file in a headless browser with every network request and WebSocket
  * blocked, other local files blocked, no permissions, no service workers and no downloads,
- * then records what the page tried to load and which errors it raised.
+ * then records what the page tried to load and which errors it raised. Below the request
+ * routing, the browser itself can reach nothing: its proxy is a local dead end, it resolves no
+ * hostnames, and WebRTC cannot send UDP. A page that navigates away, hangs or crashes is
+ * reported, never waited on forever.
  */
 export async function runInBrowser(
   fileUrl: URL,
   options: BrowserRunOptions,
 ): Promise<BrowserCheck> {
   const { chromium } = await import("playwright-core");
+  const blocked: string[] = [];
+  const pageErrors: string[] = [];
+  const consoleErrors: string[] = [];
+  const target = fileUrl.href.split("#")[0];
+  const sink = await startSink((url) => blocked.push(clean(url)));
   let browser: Awaited<ReturnType<typeof chromium.launch>>;
   try {
     browser = await chromium.launch({
@@ -77,17 +149,15 @@ export async function runInBrowser(
       headless: true,
       chromiumSandbox: options.sandbox,
       timeout: options.timeoutMs,
+      args: isolationArgs(sink.port),
     });
   } catch (error) {
+    await sink.close();
     throw new BrowserLaunchError(
       String(error instanceof Error ? error.message : error).split("\n")[0] ?? "launch failed",
     );
   }
 
-  const blocked: string[] = [];
-  const pageErrors: string[] = [];
-  const consoleErrors: string[] = [];
-  const target = fileUrl.href.split("#")[0];
   try {
     const context = await browser.newContext({
       offline: true,
@@ -124,7 +194,16 @@ export async function runInBrowser(
       consoleErrors.push(clean(text));
     });
     page.on("dialog", (dialog) => {
-      void dialog.dismiss();
+      void dialog.dismiss().catch(() => {});
+    });
+    page.on("crash", () => pageErrors.push("the page crashed"));
+    // The file may redirect itself (location, meta refresh, form submit). The navigation is
+    // blocked, so the browser would show its own error page, whose text must not count.
+    let leftTo: string | null = null;
+    page.on("framenavigated", (frame) => {
+      if (frame !== page.mainFrame()) return;
+      const url = frame.url().split("#")[0] ?? "";
+      if (url !== target && leftTo === null) leftTo = url;
     });
 
     let loaded = true;
@@ -139,13 +218,29 @@ export async function runInBrowser(
         ),
       );
     }
-    const renderedTextChars = loaded
-      ? Number(
-          await page.evaluate(
-            'document.body ? document.body.innerText.replace(/\\s+/g, "").length : 0',
-          ),
-        )
-      : 0;
+    if (leftTo !== null) {
+      loaded = false;
+      pageErrors.push(
+        (leftTo as string).startsWith("chrome-error:")
+          ? "the page tried to leave the file; the navigation was blocked"
+          : clean(`the page left the file for ${leftTo}`),
+      );
+    }
+    let renderedTextChars = 0;
+    if (loaded) {
+      // A script that never yields (an endless loop after load) must not stall verification.
+      const measured = await within(
+        page
+          .evaluate('document.body ? document.body.innerText.replace(/\\s+/g, "").length : 0')
+          .then(Number),
+        Math.min(options.timeoutMs, 5_000),
+        null,
+      );
+      if (measured === null) {
+        loaded = false;
+        pageErrors.push("the page stopped responding (a script kept running)");
+      } else renderedTextChars = measured;
+    }
 
     return {
       browser: `Chromium ${browser.version()}`,
@@ -157,6 +252,7 @@ export async function runInBrowser(
       consoleErrors: unique(consoleErrors),
     };
   } finally {
-    await browser.close();
+    await within(browser.close(), 10_000, undefined);
+    await sink.close();
   }
 }

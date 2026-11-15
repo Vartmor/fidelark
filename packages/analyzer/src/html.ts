@@ -109,7 +109,7 @@ export function extractHtml(html: string): HtmlFacts {
     }
   };
 
-  const visitElement = (el: Element, inBody: boolean, parent: Element | null) => {
+  const visitElement = (el: Element, parent: Element | null) => {
     const tag = el.tagName.toLowerCase();
     const line = lineOf(el);
 
@@ -148,6 +148,13 @@ export function extractHtml(html: string): HtmlFacts {
         if (type === "importmap") {
           facts.capabilities.add("module-script");
           readImportMap(textContent(el), line, facts, addRef);
+          break;
+        }
+        if (type === "speculationrules") {
+          // Pages the browser may prefetch or prerender in the background: requests like hints.
+          for (const url of speculationUrls(textContent(el))) {
+            addRef("other", url, `<script type="speculationrules"> line ${line}`);
+          }
           break;
         }
         const executable = CLASSIC_TYPES.has(type) || module || COMPILED_TYPES.has(type);
@@ -269,29 +276,57 @@ export function extractHtml(html: string): HtmlFacts {
         if (href && !href.startsWith("#")) addRef("image", href, `<svg ${tag}> line ${line}`);
       }
     }
-
-    visitChildren(el, inBody || tag === "body", el);
   };
 
-  const visitChildren = (node: ParentNode, inBody: boolean, parent: Element | null) => {
-    for (const child of node.childNodes as ChildNode[]) {
-      if (child.nodeName === "#text") {
-        const tag = parent?.tagName.toLowerCase() ?? "";
-        if (inBody && !NON_RENDERED.has(tag)) {
-          facts.staticTextChars += (child as DefaultTreeAdapterTypes.TextNode).value.replace(
-            /\s+/g,
-            "",
-          ).length;
-        }
-      } else if ("tagName" in child) {
-        // Template content is inert until cloned by script, so it is not inspected.
-        visitElement(child as Element, inBody, parent);
-      }
+  // Document order (pre-order) with an explicit stack: a deeply nested document must not
+  // overflow the call stack. Children are pushed in reverse so they come off in order.
+  type Task = { node: ChildNode; inBody: boolean; parent: Element | null };
+  const pending: Task[] = [];
+  const pushChildren = (node: ParentNode, inBody: boolean, parent: Element | null) => {
+    const children = node.childNodes as ChildNode[];
+    for (let i = children.length - 1; i >= 0; i--) {
+      pending.push({ node: children[i] as ChildNode, inBody, parent });
     }
   };
-
-  visitChildren(document, false, null);
+  pushChildren(document, false, null);
+  for (let task = pending.pop(); task !== undefined; task = pending.pop()) {
+    const { node, inBody, parent } = task;
+    if (node.nodeName === "#text") {
+      const tag = parent?.tagName.toLowerCase() ?? "";
+      if (inBody && !NON_RENDERED.has(tag)) {
+        facts.staticTextChars += (node as DefaultTreeAdapterTypes.TextNode).value.replace(
+          /\s+/g,
+          "",
+        ).length;
+      }
+    } else if ("tagName" in node) {
+      // Template content is inert until cloned by script; it is in `content`, not childNodes.
+      const el = node as Element;
+      visitElement(el, parent);
+      pushChildren(el, inBody || el.tagName.toLowerCase() === "body", el);
+    }
+  }
   return facts;
+}
+
+/** URLs listed in speculation rules (`{"prerender": [{"urls": [...]}], "prefetch": ...}`). */
+export function speculationUrls(json: string): string[] {
+  let rules: unknown;
+  try {
+    rules = JSON.parse(json);
+  } catch {
+    return [];
+  }
+  const urls: string[] = [];
+  for (const action of ["prefetch", "prerender"]) {
+    const list = (rules as Record<string, unknown> | null)?.[action];
+    if (!Array.isArray(list)) continue;
+    for (const rule of list) {
+      const ruleUrls = (rule as { urls?: unknown } | null)?.urls;
+      if (Array.isArray(ruleUrls)) urls.push(...ruleUrls.filter((u) => typeof u === "string"));
+    }
+  }
+  return urls;
 }
 
 function readImportMap(

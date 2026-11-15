@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Badge generator</title>
+</head>
+<body>
+<h1>Your badge</h1>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="80" onload="document.title = 'svg ran'">
+  <script>document.querySelector("h1").dataset.touched = "yes";</script>
+  <rect width="200" height="80" rx="12" fill="#1e6c4e"/>
+  <a xlink:href="javascript:alert('clicked')"><text x="20" y="48" fill="#fff">Gold member</text></a>
+  <foreignObject x="0" y="0" width="1" height="1"><iframe src="https://tracker.example/badge"></iframe></foreignObject>
+</svg>
+<img alt="badge preview" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIG9ubG9hZD0iYWxlcnQoMSkiPjxzY3JpcHQ+YWxlcnQoMik8L3NjcmlwdD48L3N2Zz4=">
+<p>Share it anywhere.</p>
+</body>
+</html>

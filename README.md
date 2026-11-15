@@ -104,8 +104,11 @@ each embedded resource with its SHA-256, and each reference left external with t
 
 `verify` needs Chrome, Chromium or Edge (set `FIDELARK_BROWSER` to a custom path). Its verdict is
 **passed** (no blocked requests, no errors), **partial** (opens, but something is blocked, raises
-errors or needs a connection) or **failed** (does not load, or stays blank while failing). It
-only loads the page; it does not click or type.
+errors or needs a connection) or **failed** (does not load, stays blank while failing, leaves
+the file or stops responding). It only loads the page; it does not click or type. Below the
+request blocking, the browser itself can reach nothing: its proxy is a local dead end, it
+resolves no hostnames and WebRTC cannot send UDP
+([threat model](docs/adr/0002-guvenilmeyen-girdi-tehdit-modeli-ve-sandbox.md)).
 
 ## Example report
 

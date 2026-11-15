@@ -1,6 +1,8 @@
+import { CSS_FONT_FACE, CSS_URL, cssUrlOf, insideRanges } from "@fidelark/analyzer";
 import type { ExportContext, Order } from "./context.ts";
 import { dataUri, decodeText } from "./mime.ts";
 import { resolveReference } from "./resolve.ts";
+import { spliceAll } from "./splice.ts";
 
 const MAX_IMPORT_DEPTH = 4;
 
@@ -8,12 +10,16 @@ type Edit = { start: number; end: number; text: Promise<string> };
 
 async function applyEdits(source: string, edits: Edit[]): Promise<string> {
   const resolved = await Promise.all(edits.map(async (e) => ({ ...e, text: await e.text })));
-  let out = source;
-  for (const e of resolved.sort((a, b) => b.start - a.start)) {
-    out = out.slice(0, e.start) + e.text + out.slice(e.end);
-  }
-  return out;
+  return spliceAll(source, resolved);
 }
+
+/**
+ * `@import url(x) conditions;` or `@import "x" conditions;`. Like the analyzer's patterns, no
+ * part can run past the next construct (conditions stop at `@` and quotes), so a stylesheet full
+ * of unterminated imports is still scanned in linear time.
+ */
+const IMPORT =
+  /@import\s+(?:url\(\s*(?:"([^"]*)"|'([^']*)'|([^"'()\s]+))\s*\)|"([^"]*)"|'([^']*)')([^;{}@"']*);/gi;
 
 const isLocalOnly = (spec: string) => /^\s*(data:|#|$)/i.test(spec);
 
@@ -31,15 +37,13 @@ export async function inlineCss(
 ): Promise<string> {
   const edits: Edit[] = [];
   const taken: [number, number][] = [];
-  const fontBlocks = [...css.matchAll(/@font-face\s*\{[^}]*\}/gi)].map(
+  const fontBlocks = [...css.matchAll(CSS_FONT_FACE)].map(
     (m) => [m.index, m.index + m[0].length] as const,
   );
 
-  for (const m of css.matchAll(
-    /@import\s+(?:url\(\s*(["']?)([^"')]+)\1\s*\)|(["'])([^"']+)\3)\s*([^;]*);/gi,
-  )) {
-    const spec = (m[2] ?? m[4] ?? "").trim();
-    const conditions = (m[5] ?? "").trim();
+  for (const m of css.matchAll(IMPORT)) {
+    const spec = (m[1] ?? m[2] ?? m[3] ?? m[4] ?? m[5] ?? "").trim();
+    const conditions = (m[6] ?? "").trim();
     const range: [number, number] = [m.index, m.index + m[0].length];
     taken.push(range);
     if (/\b(layer|supports)\s*\(/i.test(conditions) || /^layer\b/i.test(conditions)) {
@@ -71,14 +75,16 @@ export async function inlineCss(
     });
   }
 
-  for (const m of css.matchAll(/url\(\s*(["']?)([^"')]+?)\1\s*\)/gi)) {
+  const inImport = insideRanges(taken);
+  const inFontFace = insideRanges(fontBlocks);
+  for (const m of css.matchAll(CSS_URL)) {
     const at = m.index;
-    if (taken.some(([s, e]) => at >= s && at < e)) continue;
-    const spec = (m[2] ?? "").trim();
+    if (inImport(at)) continue;
+    const spec = cssUrlOf(m);
     if (isLocalOnly(spec)) continue;
     const url = resolveReference(spec, base, ctx.root);
     if (url === null) continue;
-    const kind = fontBlocks.some(([s, e]) => at >= s && at < e) ? "font" : "image";
+    const kind = inFontFace(at) ? "font" : "image";
     edits.push({
       start: at,
       end: at + m[0].length,

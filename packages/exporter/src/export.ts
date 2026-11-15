@@ -11,6 +11,7 @@ import { inlineCss } from "./css.ts";
 import type { Loader } from "./loader.ts";
 import { dataUri, decodeText } from "./mime.ts";
 import { resolveReference } from "./resolve.ts";
+import { spliceAll } from "./splice.ts";
 import { checkIntegrity } from "./sri.ts";
 
 type Element = DefaultTreeAdapterTypes.Element;
@@ -151,6 +152,13 @@ export async function exportStandaloneHtml(
       previousManifest = el;
       return;
     }
+    if (type === "speculationrules" && loc) {
+      // Background prefetch and prerender of other pages: like resource hints, offline they
+      // only fail.
+      notes.hintsRemoved++;
+      edits.push({ start: loc.startOffset, end: loc.endOffset, text: "" });
+      return;
+    }
     if (src === undefined || !loc?.startTag) return;
     if (type === "module") {
       ctx.skip("module", src, "ES module graphs are not bundled yet", false, next());
@@ -253,79 +261,82 @@ export async function exportStandaloneHtml(
     });
   };
 
-  const visit = (node: ParentNode) => {
-    for (const child of node.childNodes) {
-      if (!("tagName" in child)) continue;
-      const el = child as Element;
-      const tag = el.tagName.toLowerCase();
-      if (el.attrs.some((a) => a.name === "style")) styleAttribute(el);
-      switch (tag) {
-        case "head":
-          head = el;
-          break;
-        case "body":
-          body = el;
-          break;
-        case "base": {
-          const href = attr(el, "href");
-          if (href) base = resolveReference(href, options.documentUrl, root) ?? base;
-          break;
-        }
-        case "meta":
-          if ((attr(el, "http-equiv") ?? "").toLowerCase() === "content-security-policy")
-            notes.csp = true;
-          break;
-        case "script":
-          scriptElement(el);
-          break;
-        case "link":
-          linkElement(el);
-          break;
-        case "style":
-          styleContent(el);
-          break;
-        case "img":
-          embedAttribute(el, "src", "image");
-          embedSrcset(el, "image");
-          break;
-        case "input":
-          if ((attr(el, "type") ?? "").toLowerCase() === "image")
-            embedAttribute(el, "src", "image");
-          break;
-        case "source": {
-          const kind: DependencyKind =
-            (node as Element).tagName?.toLowerCase() === "picture" ? "image" : "media";
-          embedAttribute(el, "src", kind);
-          embedSrcset(el, kind);
-          break;
-        }
-        case "video":
-        case "audio":
-          embedAttribute(el, "src", "media");
-          embedAttribute(el, "poster", "image");
-          break;
-        case "track":
-          embedAttribute(el, "src", "media");
-          break;
-        case "image":
-        case "feimage":
-          embedAttribute(el, "href", "image");
-          embedAttribute(el, "xlink:href", "image");
-          break;
-        case "iframe":
-        case "frame":
-        case "embed":
-        case "object": {
-          const src = tag === "object" ? attr(el, "data") : attr(el, "src");
-          if (src && resolve(src))
-            ctx.skip("frame", src, "embedded pages stay external", false, next());
-          break;
-        }
+  const visitElement = (el: Element) => {
+    const tag = el.tagName.toLowerCase();
+    if (el.attrs.some((a) => a.name === "style")) styleAttribute(el);
+    switch (tag) {
+      case "head":
+        head = el;
+        break;
+      case "body":
+        body = el;
+        break;
+      case "base": {
+        const href = attr(el, "href");
+        if (href) base = resolveReference(href, options.documentUrl, root) ?? base;
+        break;
       }
-      visit(el); // template content lives in `content`, not childNodes, so it is not touched
+      case "meta":
+        if ((attr(el, "http-equiv") ?? "").toLowerCase() === "content-security-policy")
+          notes.csp = true;
+        break;
+      case "script":
+        scriptElement(el);
+        break;
+      case "link":
+        linkElement(el);
+        break;
+      case "style":
+        styleContent(el);
+        break;
+      case "img":
+        embedAttribute(el, "src", "image");
+        embedSrcset(el, "image");
+        break;
+      case "input":
+        if ((attr(el, "type") ?? "").toLowerCase() === "image") embedAttribute(el, "src", "image");
+        break;
+      case "source": {
+        const kind: DependencyKind =
+          (el.parentNode as Element | null)?.tagName?.toLowerCase() === "picture"
+            ? "image"
+            : "media";
+        embedAttribute(el, "src", kind);
+        embedSrcset(el, kind);
+        break;
+      }
+      case "video":
+      case "audio":
+        embedAttribute(el, "src", "media");
+        embedAttribute(el, "poster", "image");
+        break;
+      case "track":
+        embedAttribute(el, "src", "media");
+        break;
+      case "image":
+      case "feimage":
+        embedAttribute(el, "href", "image");
+        embedAttribute(el, "xlink:href", "image");
+        break;
+      case "iframe":
+      case "frame":
+      case "embed":
+      case "object": {
+        const src = tag === "object" ? attr(el, "data") : attr(el, "src");
+        if (src && resolve(src))
+          ctx.skip("frame", src, "embedded pages stay external", false, next());
+        break;
+      }
     }
   };
-  visit(document);
+  // Document order with an explicit stack, so deep nesting cannot overflow the call stack.
+  // Template content lives in `content`, not childNodes, so it is not touched.
+  const pending: ParentNode[] = [document];
+  for (let node = pending.pop(); node !== undefined; node = pending.pop()) {
+    if (node !== document) visitElement(node as Element);
+    const children = node.childNodes.filter((c): c is Element => "tagName" in c);
+    for (let i = children.length - 1; i >= 0; i--) pending.push(children[i] as Element);
+  }
 
   const resolvedEdits = await Promise.all(edits.map(async (e) => ({ ...e, text: await e.text })));
 
@@ -349,12 +360,7 @@ export async function exportStandaloneHtml(
     resolvedEdits.push({ start: at, end: at, text: at === 0 ? `${manifestTag}\n` : manifestTag });
   }
 
-  let out = html;
-  for (const e of resolvedEdits.sort((a, b) => b.start - a.start || b.end - a.end)) {
-    out = out.slice(0, e.start) + e.text + out.slice(e.end);
-  }
-
-  return { html: out, manifest, findings: exportFindings(ctx, notes) };
+  return { html: spliceAll(html, resolvedEdits), manifest, findings: exportFindings(ctx, notes) };
 }
 
 /** Where the manifest goes: before </head>, else before <body>, else at the very start. */
@@ -413,7 +419,7 @@ function exportFindings(
     findings.push({
       code: "export.hints-removed",
       severity: "info",
-      message: `Removed ${notes.hintsRemoved} resource hint${notes.hintsRemoved === 1 ? "" : "s"} (preload, prefetch, preconnect) that would only fail offline.`,
+      message: `Removed ${notes.hintsRemoved} resource hint${notes.hintsRemoved === 1 ? "" : "s"} (preload, prefetch, preconnect, speculation rules) that would only fail offline.`,
     });
   }
   if (notes.csp) {

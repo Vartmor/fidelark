@@ -22,6 +22,8 @@ export type FidelitySignals = {
   inArchive?: boolean;
   /** Module scripts loaded from archive files; they need bundling or a web server to run. */
   archiveModules?: readonly string[];
+  /** Evidence for moves to a remote or computed address (location, window.open, meta refresh). */
+  navigation?: readonly string[];
 };
 
 type Rule = { class: FidelityClass; evidence: string };
@@ -112,6 +114,11 @@ export function assessFidelity(s: FidelitySignals): FidelityAssessment {
     behaviorRules.push({
       class: "connected",
       evidence: `Loads code from a location computed at runtime: ${e}.`,
+    });
+  for (const e of s.navigation ?? [])
+    behaviorRules.push({
+      class: "connected",
+      evidence: `Sends the reader to a page that needs a connection: ${e}.`,
     });
   for (const e of s.remoteForms)
     behaviorRules.push({

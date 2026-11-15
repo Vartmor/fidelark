@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Prime finder</title>
+</head>
+<body>
+<h1>Prime finder</h1>
+<p id="out">Searching for the largest prime…</p>
+<script>
+  // Starts after the page has loaded and never yields: verify must give up, not wait forever.
+  setTimeout(() => {
+    for (let n = 2; ; n++) {
+      if (n < 0) document.getElementById("out").textContent = String(n);
+    }
+  }, 100);
+</script>
+</body>
+</html>

@@ -182,6 +182,7 @@ function mergeScriptFacts(all: ScriptFacts[]): ScriptFacts {
     dynamicCode: [],
     scriptInjection: [],
     hostApi: [],
+    navigation: [],
   };
   for (const f of all) {
     for (const key of Object.keys(merged) as (keyof ScriptFacts)[]) {
@@ -237,6 +238,22 @@ export function analyzeHtml(html: string, local?: LocalFiles): AnalysisResult {
   const computedCode = [...code.dynamicImports, ...code.workers]
     .filter((r) => r.target === null)
     .map((r) => where(r));
+  // Leaving the page for a remote or computed address needs a connection; a relative page
+  // (another file next to this one) does not.
+  const metaTargets = facts.metaRefresh.map((m) => ({
+    target: /url\s*=\s*["']?([^"'\s;]+)/i.exec(m)?.[1] ?? null,
+    evidence: m,
+  }));
+  const navigation = [
+    ...code.navigation.map((r) => ({
+      target: r.target,
+      evidence: `${show(r.target)} (${where(r)})`,
+    })),
+    ...metaTargets.filter((m) => m.target !== null),
+  ];
+  const leaves = navigation
+    .filter((n) => n.target === null || classifySpecifier(n.target) === "remote")
+    .map((n) => n.evidence);
 
   const fidelity = assessFidelity({
     staticTextChars: facts.staticTextChars,
@@ -248,6 +265,7 @@ export function analyzeHtml(html: string, local?: LocalFiles): AnalysisResult {
     hostApi: code.hostApi.map(where),
     inArchive: local !== undefined,
     archiveModules: scan.modules,
+    navigation: leaves,
   });
 
   const unbundled = dependencies.filter((d) => !d.bundled);
@@ -276,6 +294,7 @@ export function analyzeHtml(html: string, local?: LocalFiles): AnalysisResult {
     secrets,
     modules: scan.modules,
     inArchive: local !== undefined,
+    navigation: code.navigation.map((r) => `${show(r.target)} (${where(r)})`),
   });
 
   return {
@@ -303,6 +322,7 @@ type FindingInput = {
   secrets: string[];
   modules: string[];
   inArchive: boolean;
+  navigation: string[];
 };
 
 function buildFindings({
@@ -315,6 +335,7 @@ function buildFindings({
   secrets,
   modules,
   inArchive,
+  navigation,
 }: FindingInput): Finding[] {
   const findings: Finding[] = [];
   const add = (id: string, severity: Finding["severity"], message: string, evidence?: string[]) =>
@@ -388,6 +409,14 @@ function buildFindings({
       "warning",
       "A form sends data to a remote address when submitted.",
       facts.remoteForms.map(redactSecrets),
+    );
+  }
+  if (navigation.length > 0) {
+    add(
+      "script.navigation",
+      "warning",
+      "Sends the reader to another page or opens a new window at runtime.",
+      navigation,
     );
   }
   if (facts.metaRefresh.length > 0) {

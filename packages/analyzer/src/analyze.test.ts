@@ -230,6 +230,17 @@ describe("assessFidelity", () => {
   });
 });
 
+describe("analyzeHtml on hostile input", () => {
+  it("walks deeply nested documents without overflowing the stack", () => {
+    const html = `<!doctype html>${"<div>".repeat(100_000)}deep${"<svg><g>".repeat(20_000)}`;
+    const { analysis } = analyzeHtml(html);
+    expect(analysis.fidelity.axes.content.evidence[0]).toBe(
+      "4 characters of static text are in the document.",
+    );
+    expect(analysis.capabilities).toContain("svg");
+  });
+});
+
 /** The other files of a ZIP export, with the document at site/index.html. */
 function archive(files: Record<string, string>): LocalFiles {
   const encoded = new Map(Object.entries(files).map(([p, c]) => [p, new TextEncoder().encode(c)]));

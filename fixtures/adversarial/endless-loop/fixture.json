@@ -1,0 +1,29 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.3.0",
+  "id": "endless-loop",
+  "title": "Page whose script never yields after load",
+  "category": "adversarial",
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
+  "artifact": {
+    "path": "artifact.html",
+    "sha256": "d1af35acb1ee225b328cbb116829268ee423ee6db222be3c60e21e1eefbfbbd2"
+  },
+  "expected": {
+    "format": "html",
+    "capabilities": [
+      "html",
+      "inline-script"
+    ],
+    "fidelity": "exact-portable",
+    "offline": "fails",
+    "findings": [
+      "script.inline"
+    ]
+  },
+  "baselines": [],
+  "notes": "verify must give up after a bounded time and report that the page stopped responding, not hang."
+}

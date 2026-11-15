@@ -30,5 +30,13 @@ Fidelark is pre-alpha. Only the latest commit on `main` is supported.
 - `convert` downloads nothing unless `--allow-network` is given, and then only from public
   addresses, with size, time and redirect limits.
 - `verify` executes the file only inside a sandboxed browser with all network access, other
-  local files, permissions, service workers, popups and downloads blocked.
+  local files, permissions, service workers, popups and downloads blocked. Below that, the
+  browser process itself can reach nothing: its proxy is a local dead end, it resolves no
+  hostnames and WebRTC cannot send UDP. A page that hangs or navigates away is reported, never
+  waited on.
+- Parsing stays linear in the input size: no regular expression may backtrack across the input,
+  and no tree walk recurses, so hostile input cannot stall or crash `inspect` or `convert`.
+
+The threat model and a red-team checklist, each item backed by an automated test, are in
+[ADR-002](docs/adr/0002-guvenilmeyen-girdi-tehdit-modeli-ve-sandbox.md).
 - The CLI sends no content and no telemetry.

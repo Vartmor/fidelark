@@ -1,0 +1,33 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.3.0",
+  "id": "svg-script",
+  "title": "Inline SVG with its own script, an onload handler, a javascript: link, a tracking frame in foreignObject and a scripted SVG image",
+  "category": "adversarial",
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
+  "artifact": {
+    "path": "artifact.html",
+    "sha256": "7e5fccb3976795de10e89ccb90d0f813201b4e43586ed590963e9ad4f7569d36"
+  },
+  "expected": {
+    "format": "html",
+    "capabilities": [
+      "html",
+      "inline-script",
+      "image",
+      "svg",
+      "iframe"
+    ],
+    "fidelity": "connected",
+    "offline": "partial",
+    "findings": [
+      "html.remote-frame",
+      "script.inline"
+    ]
+  },
+  "baselines": [],
+  "notes": "Scripts inside SVG run like any other; the SVG in the <img> data URI cannot run scripts at all. Never executed during inspection."
+}

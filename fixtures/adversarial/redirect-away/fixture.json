@@ -1,0 +1,29 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.3.0",
+  "id": "redirect-away",
+  "title": "Certificate page that immediately redirects to a remote site",
+  "category": "adversarial",
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
+  "artifact": {
+    "path": "artifact.html",
+    "sha256": "bf1653b150b4fe3ace459b2ef06a20a0942d9a7fa940bcb9a21d9c06e609ecf3"
+  },
+  "expected": {
+    "format": "html",
+    "capabilities": [
+      "html",
+      "inline-script"
+    ],
+    "fidelity": "connected",
+    "offline": "fails",
+    "findings": [
+      "script.navigation"
+    ]
+  },
+  "baselines": [],
+  "notes": "Offline, the browser would show its own error page; verify must not count that page's text as the artifact loading."
+}

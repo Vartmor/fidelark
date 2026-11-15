@@ -59,6 +59,29 @@ describe("extractCssReferences", () => {
   });
 });
 
+describe("extractCssReferences on hostile input", () => {
+  it("reads every form of url() the way browsers do", () => {
+    const css =
+      "a{background:url( \"a b.png\" )} b{x:url('c.png')} c{x:url(d.png)} d{x:url()} e{x:url(e(1).png)}";
+    expect(extractCssReferences(css).map((r) => r.url)).toEqual(["a b.png", "c.png", "d.png"]);
+  });
+
+  // Each input is about 1 MB of a construct that never closes. A scan that restarts at every
+  // occurrence is quadratic and takes minutes here; a linear one takes milliseconds.
+  it.each([
+    ["url( without )", "url(a".repeat(250_000)],
+    ['url(" without "', 'url("a'.repeat(200_000)],
+    ["url( followed by spaces", `url(${" ".repeat(1_000_000)}`],
+    ["@font-face { without }", "@font-face{".repeat(90_000)],
+    ["comments without */", "/* a".repeat(250_000)],
+    ["@import without ;", "@import 'a.css' screen ".repeat(45_000)],
+  ])("scans %s in linear time", (_name, css) => {
+    const started = performance.now();
+    extractCssReferences(css);
+    expect(performance.now() - started).toBeLessThan(2_000);
+  });
+});
+
 describe("text helpers", () => {
   it("maps indexes to lines", () => {
     const lineOf = lineLookup("a\nbb\nccc", 5);

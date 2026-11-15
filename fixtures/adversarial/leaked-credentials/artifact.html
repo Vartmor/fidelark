@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Weather card</title>
+</head>
+<body>
+<h1>Weather in Lisbon</h1>
+<p id="temp">Loading…</p>
+<img alt="map" src="https://maps.example.com/static?center=lisbon&key=demo-key-not-real-0000">
+<script>
+  // An assistant pasted the developer's credentials straight into the page.
+  const headers = { Authorization: "Bearer demoTokenNotReal0123456789abcdef" };
+  fetch("https://api.weather.example/v1/now?city=lisbon&api_key=demo-not-a-real-key-1111", { headers })
+    .then((r) => r.json())
+    .then((d) => { document.getElementById("temp").textContent = d.temp + " °C"; });
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.3.0",
+  "id": "leaked-credentials",
+  "title": "Widget with an API key in an image URL, a bearer token in fetch headers and a key in a query string",
+  "category": "adversarial",
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
+  "artifact": {
+    "path": "artifact.html",
+    "sha256": "39e0a033e5cee9c07b328e1d7e99d1686bd5db33c374d7897a7fdfd8601f13bf"
+  },
+  "expected": {
+    "format": "html",
+    "capabilities": [
+      "html",
+      "inline-script",
+      "image",
+      "network-fetch"
+    ],
+    "fidelity": "connected",
+    "offline": "partial",
+    "findings": [
+      "secret.possible",
+      "network.runtime",
+      "dependency.remote"
+    ]
+  },
+  "baselines": [],
+  "notes": "The values are fake placeholders. Reports and verify output must show them redacted, never in full."
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "../../../packages/schema/json-schema/fixture-manifest.schema.json",
+  "schemaVersion": "0.3.0",
+  "id": "sandbox-escape-attempts",
+  "title": "Page that tries every way out: fetch, file://, beacon, EventSource, WebSocket, image beacon, worker, popup, WebRTC, preconnect, prefetch, speculation rules, service worker",
+  "category": "adversarial",
+  "source": {
+    "origin": "synthetic",
+    "license": "CC0-1.0"
+  },
+  "artifact": {
+    "path": "artifact.html",
+    "sha256": "47fbee0ece592dbbbe561e58d2a5eeb59fddcf6a4f9e9bd20e823a5d1f9062fa"
+  },
+  "expected": {
+    "format": "html",
+    "capabilities": [
+      "html",
+      "inline-script",
+      "network-fetch",
+      "websocket",
+      "storage",
+      "worker"
+    ],
+    "fidelity": "static-fallback",
+    "offline": "partial",
+    "findings": [
+      "network.runtime",
+      "script.navigation",
+      "script.dynamic-import",
+      "storage.persistent"
+    ]
+  },
+  "baselines": [],
+  "notes": "verify must block and record every attempt; nothing may reach the network or other local files (packages/verifier/src/isolation.test.ts tests the same paths against a local listener)."
+}

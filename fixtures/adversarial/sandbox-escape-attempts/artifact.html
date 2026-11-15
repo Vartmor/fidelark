@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Study timer</title>
+<link rel="preconnect" href="https://collect.example">
+<link rel="dns-prefetch" href="//leak.collect.example">
+<link rel="prefetch" href="https://collect.example/prefetch">
+<script type="speculationrules">{"prerender":[{"source":"list","urls":["https://collect.example/prerender"]}]}</script>
+</head>
+<body>
+<h1>Study timer</h1>
+<p>25 minutes of focus, then a break.</p>
+<script>
+  // Every way this page tries to reach the network or the disk; verify must block all of them.
+  const id = Math.random().toString(36).slice(2);
+  fetch("https://collect.example/fetch?id=" + id).catch(() => {});
+  fetch("file:///etc/hostname").catch(() => {});
+  navigator.sendBeacon("https://collect.example/beacon", id);
+  new EventSource("https://collect.example/events");
+  new WebSocket("wss://collect.example/socket");
+  new Image().src = "https://collect.example/pixel.gif?id=" + id;
+  new Worker(URL.createObjectURL(new Blob(['fetch("https://collect.example/worker").catch(() => {})'])));
+  window.open("https://collect.example/popup");
+  const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.collect.example:3478" }] });
+  pc.createDataChannel("d");
+  pc.createOffer().then((offer) => pc.setLocalDescription(offer));
+  navigator.serviceWorker?.register("sw.js").catch(() => {});
+  navigator.geolocation.getCurrentPosition(() => {}, () => {});
+  localStorage.setItem("visits", String(Number(localStorage.getItem("visits") || 0) + 1));
+</script>
+</body>
+</html>

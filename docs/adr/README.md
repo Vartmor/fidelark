@@ -6,7 +6,7 @@
 | No                                     | Karar                                                                | Durum        |
 | -------------------------------------- | -------------------------------------------------------------------- | ------------ |
 | 001                                    | Neden özel dosya uzantısı yerine HTML/ZIP ile başlıyoruz?            | Planlandı    |
-| 002                                    | Güvenilmeyen HTML'nin çalışma sınırları ve sandbox ilkeleri          | Planlandı    |
+| [002](0002-guvenilmeyen-girdi-tehdit-modeli-ve-sandbox.md) | Güvenilmeyen girdi: tehdit modeli ve sandbox ilkeleri | Kabul edildi |
 | 003                                    | AST ve fidelity kategorilerinin sürümlenmesi                         | Planlandı    |
 | 004                                    | Cloud'a içerik göndermeyen local-first veri akışı                    | Planlandı    |
 | 005                                    | Deterministik dönüşüm, opt-in LLM ve maliyet politikası              | Planlandı    |

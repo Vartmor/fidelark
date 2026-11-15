@@ -21,6 +21,8 @@ export type ScriptFacts = {
   dynamicCode: CodeReference[];
   scriptInjection: CodeReference[];
   hostApi: CodeReference[];
+  /** Sends the reader to another page: location changes and window.open(). */
+  navigation: CodeReference[];
 };
 
 const emptyFacts = (parsed: boolean): ScriptFacts => ({
@@ -34,6 +36,7 @@ const emptyFacts = (parsed: boolean): ScriptFacts => ({
   dynamicCode: [],
   scriptInjection: [],
   hostApi: [],
+  navigation: [],
 });
 
 const FETCH = new Set(["fetch", "window.fetch", "globalThis.fetch", "self.fetch"]);
@@ -41,6 +44,36 @@ const STORAGE = new Set(["localStorage", "sessionStorage", "indexedDB"]);
 const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
 
 type AnyNode = AcornNode & Record<string, unknown>;
+
+/** `location`, `window.location.href`, `document.location`, ...: assigning one navigates. */
+const LOCATION = /^(?:(?:window|self|top|parent|document)\.)?location(?:\.href)?$/;
+const LOCATION_CALL = /^(?:(?:window|self|top|parent|document)\.)?location\.(?:assign|replace)$/;
+
+/** Static ICE server URLs (`stun:`, `turn:`) from an RTCPeerConnection configuration. */
+function iceServerUrls(config: unknown): string[] {
+  const n = config as AnyNode | undefined;
+  if (n?.type !== "ObjectExpression") return [];
+  const urls: string[] = [];
+  for (const prop of n.properties as AnyNode[]) {
+    const key = (prop.key as AnyNode | undefined)?.name ?? (prop.key as AnyNode | undefined)?.value;
+    if (key !== "iceServers" || (prop.value as AnyNode).type !== "ArrayExpression") continue;
+    for (const server of (prop.value as AnyNode).elements as AnyNode[]) {
+      if (server?.type !== "ObjectExpression") continue;
+      for (const field of server.properties as AnyNode[]) {
+        const name =
+          (field.key as AnyNode | undefined)?.name ?? (field.key as AnyNode | undefined)?.value;
+        if (name !== "urls" && name !== "url") continue;
+        const value = field.value as AnyNode;
+        const list = value.type === "ArrayExpression" ? (value.elements as AnyNode[]) : [value];
+        for (const item of list) {
+          const url = staticString(item);
+          if (url) urls.push(url);
+        }
+      }
+    }
+  }
+  return urls;
+}
 
 /** Dotted name of an identifier or non-computed member chain, e.g. "navigator.sendBeacon". */
 function dottedName(node: unknown): string | null {
@@ -129,6 +162,12 @@ export function analyzeScript(code: string, { module = false, startLine = 1 } = 
         facts.dynamicCode.push(ref(null, node, `${name}() with a string`));
       else if (name === "document.createElement" && staticString(arg0)?.toLowerCase() === "script")
         facts.scriptInjection.push(ref(null, node, 'document.createElement("script")'));
+      else if (LOCATION_CALL.test(name))
+        facts.navigation.push(
+          ref(staticString(arg0), node, `${name.replace(/^.*location\./, "location.")}()`),
+        );
+      else if (name === "window.open" || name === "open")
+        facts.navigation.push(ref(staticString(arg0), node, "window.open()"));
       else if (name === "importScripts")
         facts.workers.push(ref(staticString(arg0), node, "importScripts()"));
       else if (name.endsWith("serviceWorker.register"))
@@ -145,6 +184,17 @@ export function analyzeScript(code: string, { module = false, startLine = 1 } = 
       else if (name === "Function") facts.dynamicCode.push(ref(null, node, "new Function()"));
       else if (name === "Worker" || name === "SharedWorker")
         facts.workers.push(ref(staticString(arg0), node, `new ${name}()`));
+      else if (name === "RTCPeerConnection" || name === "webkitRTCPeerConnection") {
+        // Peer connections reach STUN/TURN servers and the other peer over the network.
+        const urls = iceServerUrls(arg0);
+        if (urls.length === 0) facts.network.push(ref(null, node, "RTCPeerConnection"));
+        for (const url of urls) facts.network.push(ref(url, node, "RTCPeerConnection"));
+      }
+    },
+    AssignmentExpression(node) {
+      const name = dottedName(node.left);
+      if (name !== null && LOCATION.test(name))
+        facts.navigation.push(ref(staticString(node.right), node, "location"));
     },
     ImportExpression(node) {
       facts.dynamicImports.push(ref(staticString(node.source), node, "import()"));
@@ -228,6 +278,21 @@ function analyzeWithRegex(code: string, startLine: number): ScriptFacts {
   );
   collect(/\beval\s*\(|\bnew\s+Function\s*\(/g, facts.dynamicCode, "eval()");
   collect(/\bwindow\.claude\b/g, facts.hostApi, "window.claude");
+  collect(/\bnew\s+(?:webkit)?RTCPeerConnection\b/g, facts.network, "RTCPeerConnection");
+  collect(
+    /\blocation(?:\.href)?\s*=(?!=)\s*(?:(["'`])([^"'`]*)\1)?/g,
+    facts.navigation,
+    "location",
+    2,
+  );
+  collect(
+    /\blocation\.(?:assign|replace)\s*\(\s*(?:(["'`])([^"'`]*)\1)?/g,
+    facts.navigation,
+    "location.replace()",
+    2,
+  );
+  collect(/\bwindow\.open\s*\(\s*(?:(["'`])([^"'`]*)\1)?/g, facts.navigation, "window.open()", 2);
+  for (const r of facts.navigation) if (r.target === "") r.target = null;
   for (const r of facts.network) if (r.target === "") r.target = null;
   facts.network = dedupeRefs(facts.network);
   facts.storage = dedupeRefs(facts.storage);
